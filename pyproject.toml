@@ -1,0 +1,61 @@
+[project]
+name = "better-secureframe-mcp-server"
+version = "2.0.0"
+description = "A complete, modern MCP server for the Secureframe compliance platform (full read+write API coverage; a rebuilt, independent fork of the official server)"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "misfitdev" }]
+maintainers = [{ name = "misfitdev" }]
+keywords = ["secureframe", "compliance", "mcp", "security", "automation"]
+license = { text = "MIT" }
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Topic :: Office/Business",
+]
+dependencies = [
+    "fastmcp~=3.4",
+    "httpx~=0.28",
+    "pydantic~=2.10",
+    "python-dotenv~=1.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest~=8.3",
+    "pytest-asyncio~=0.24",
+    "ruff~=0.6",
+    "build~=1.2",
+    "twine~=5.1",
+]
+
+[project.scripts]
+better-secureframe-mcp = "better_secureframe_mcp.server:main"
+
+[project.urls]
+Homepage = "https://github.com/misfitdev/better-secureframe-mcp-server"
+Repository = "https://github.com/misfitdev/better-secureframe-mcp-server.git"
+Issues = "https://github.com/misfitdev/better-secureframe-mcp-server/issues"
+Documentation = "https://github.com/misfitdev/better-secureframe-mcp-server#readme"
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["better_secureframe_mcp*"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

@@ -1,0 +1,12 @@
+# mise manages the toolchain and environment. The actual work lives in the justfile.
+
+[tools]
+python = "3.12"
+uv = "latest"
+ruff = "latest"
+just = "latest"
+lefthook = "latest"
+
+[env]
+# Auto-create and activate a project virtualenv.
+_.python.venv = { path = ".venv", create = true }

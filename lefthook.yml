@@ -1,0 +1,15 @@
+# Git hooks trigger justfile recipes. Install with: just setup  (or: lefthook install)
+# `mise exec` ensures the mise-managed just + tools resolve regardless of shell state.
+
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      run: mise exec -- just lint
+    format:
+      run: mise exec -- just check-fmt
+
+pre-push:
+  commands:
+    test:
+      run: mise exec -- just test

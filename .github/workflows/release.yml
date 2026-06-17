@@ -10,31 +10,37 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      hashes: ${{ steps.hash.outputs.hashes }}
     steps:
       - uses: actions/checkout@v4
       - uses: jdx/mise-action@v2
       - run: just install
       - run: just build
+      - name: Generate SLSA subject hashes
+        id: hash
+        working-directory: dist
+        run: echo "hashes=$(sha256sum * | base64 -w0)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
 
-  pypi:
-    needs: build
-    runs-on: ubuntu-latest
-    environment: pypi
-    # PyPI Trusted Publishing (OIDC) — configure the publisher at
-    # https://pypi.org/manage/project/better-secureframe-mcp-server/settings/publishing/
-    # Delete this job if you do not publish to PyPI.
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/
-      - uses: pypa/gh-action-pypi-publish@release/v1
+  # PyPI publishing is disabled for now. To enable: uncomment this job and set up
+  # PyPI Trusted Publishing (OIDC) at
+  # https://pypi.org/manage/project/better-secureframe-mcp-server/settings/publishing/
+  # pypi:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   environment: pypi
+  #   permissions:
+  #     id-token: write
+  #   steps:
+  #     - uses: actions/download-artifact@v4
+  #       with:
+  #         name: dist
+  #         path: dist/
+  #     - uses: pypa/gh-action-pypi-publish@release/v1
 
   github-release:
     needs: build
@@ -50,3 +56,19 @@ jobs:
         with:
           files: dist/*
           generate_release_notes: true
+
+  # SLSA3 build provenance for the released artifacts: a signed, non-falsifiable
+  # attestation of how/where they were built. Runs after github-release (the
+  # generator uploads to an existing release; it does not create one) and
+  # attaches provenance.intoto.jsonl to the v* release. Verify downloaded
+  # artifacts with `slsa-verifier verify-artifact`.
+  provenance:
+    needs: [build, github-release]
+    permissions:
+      actions: read # detect the GitHub Actions environment
+      id-token: write # sign provenance via OIDC (Sigstore)
+      contents: write # upload provenance to the release
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: "${{ needs.build.outputs.hashes }}"
+      upload-assets: true

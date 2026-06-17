@@ -10,17 +10,22 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      hashes: ${{ steps.hash.outputs.hashes }}
+    permissions:
+      contents: read
+      id-token: write # sign the provenance attestation via OIDC
+      attestations: write # record the attestation on the repo
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4.2.0
       - run: just install
       - run: just build
-      - name: Generate SLSA subject hashes
-        id: hash
-        working-directory: dist
-        run: echo "hashes=$(sha256sum * | base64 -w0)" >> "$GITHUB_OUTPUT"
+      # SLSA build provenance via GitHub's native attestation (Node 24, no
+      # third-party reusable workflow). Verify with:
+      #   gh attestation verify <file> --repo misfitdev/better-secureframe-mcp-server
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-path: dist/*
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dist
@@ -56,19 +61,3 @@ jobs:
         with:
           files: dist/*
           generate_release_notes: true
-
-  # SLSA3 build provenance for the released artifacts: a signed, non-falsifiable
-  # attestation of how/where they were built. Runs after github-release (the
-  # generator uploads to an existing release; it does not create one) and
-  # attaches provenance.intoto.jsonl to the v* release. Verify downloaded
-  # artifacts with `slsa-verifier verify-artifact`.
-  provenance:
-    needs: [build, github-release]
-    permissions:
-      actions: read # detect the GitHub Actions environment
-      id-token: write # sign provenance via OIDC (Sigstore)
-      contents: write # upload provenance to the release
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
-    with:
-      base64-subjects: "${{ needs.build.outputs.hashes }}"
-      upload-assets: true

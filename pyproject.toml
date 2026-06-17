@@ -33,7 +33,7 @@ dev = [
     "pytest-asyncio~=0.24",
     "ruff~=0.6",
     "build~=1.2",
-    "twine~=5.1",
+    "twine>=6.1",
 ]
 
 [project.scripts]

@@ -178,3 +178,4 @@ bower_components/
 mise.local.toml
 .mise.local.toml
 lefthook-local.yml
+.mise.env.toml

@@ -1,8 +1,8 @@
 ---
-title: MCP Server — Install & Usage
+title: MCP server
+kicker: Install & usage
+dek: Install the server and connect it to Claude Code, Claude Desktop, Cursor, Codex, or Gemini.
 ---
-
-# Better Secureframe MCP Server — Install & Usage
 
 Read + write access to the Secureframe compliance platform (SOC 2, ISO 27001,
 CMMC, FedRAMP, HIPAA, and more) for AI assistants like Claude and Cursor.

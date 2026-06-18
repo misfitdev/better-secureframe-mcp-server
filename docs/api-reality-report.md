@@ -1,8 +1,8 @@
 ---
-title: Secureframe API — Empirical Reality Report
+title: "Secureframe API: an empirical reality report"
+kicker: Field report · read side
+dek: What the API actually returns and supports, versus what its docs imply. Verified against a live account, read-only, fully anonymized.
 ---
-
-# Secureframe API — Empirical Reality Report (read side)
 
 > An evidence-first, falsification-style audit of what the Secureframe REST API
 > **actually** returns and supports, versus what its OpenAPI document and

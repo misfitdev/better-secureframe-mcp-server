@@ -1,3 +1,17 @@
 title: Better Secureframe MCP Server
 description: A complete MCP server for Secureframe, plus an empirical reality report of the Secureframe API.
-theme: jekyll-theme-cayman
+url: https://misfitdev.github.io
+baseurl: /better-secureframe-mcp-server
+
+# Custom layout (no theme). All pages default to the `default` layout.
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+
+exclude:
+  - openapi.yaml
+
+kramdown:
+  input: GFM

@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% if page.url == '/' %}{{ site.title }}{% else %}{{ page.title }} · {{ site.title }}{% endif %}</title>
+    <meta name="description" content="{{ page.dek | default: site.description }}" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='2' fill='%23f6f3ea'/><rect x='2.4' y='2.4' width='11.2' height='11.2' rx='1.4' fill='none' stroke='%23241f1b' stroke-width='1.1'/><path d='M4 12 L12 4' stroke='%238f2f22' stroke-width='1.7'/></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="masthead">
+      <div class="masthead-in">
+        <a class="brand" href="{{ '/' | relative_url }}">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-text"><span class="brand-accent">better-</span>secureframe-mcp</span>
+        </a>
+        {% assign p = page.url %}
+        <nav class="nav" aria-label="Primary">
+          <a href="{{ '/' | relative_url }}"{% if p == '/' %} aria-current="page"{% endif %}>Overview</a>
+          <a href="{{ '/mcp-server.html' | relative_url }}"{% if p contains 'mcp-server' %} aria-current="page"{% endif %}>Install</a>
+          <a href="{{ '/api-reality-report.html' | relative_url }}"{% if p contains 'reality' %} aria-current="page"{% endif %}>API report</a>
+          <a class="nav-ext" href="https://github.com/misfitdev/better-secureframe-mcp-server">Source <span aria-hidden="true">↗</span></a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="wrap">
+      <aside class="rail">
+        <div class="rail-in">
+          {% if page.kicker %}<p class="rail-doc">{{ page.kicker }}</p>{% endif %}
+          <nav id="toc" class="toc" aria-label="On this page"></nav>
+        </div>
+      </aside>
+
+      <main id="main" class="prose">
+        <header class="page-head">
+          {% if page.kicker %}<p class="kicker">{{ page.kicker }}</p>{% endif %}
+          <h1>{{ page.title }}</h1>
+          {% if page.dek %}<p class="dek">{{ page.dek }}</p>{% endif %}
+        </header>
+        {{ content }}
+      </main>
+    </div>
+
+    <footer class="site-foot">
+      <div class="foot-in">
+        <p>
+          <span class="foot-brand"><span class="brand-accent">better-</span>secureframe-mcp</span>
+          · independent fork, completely rebuilt · <strong>not affiliated with Secureframe</strong>
+        </p>
+        <p class="foot-meta">
+          <a href="https://github.com/misfitdev/better-secureframe-mcp-server">Source</a> ·
+          <a href="https://github.com/misfitdev/better-secureframe-mcp-server/blob/main/LICENSE">MIT</a> ·
+          docs built from <code>/docs</code>
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        var main = document.querySelector("main.prose");
+        if (!main) return;
+
+        // Wrap wide tables so they scroll horizontally instead of overflowing.
+        main.querySelectorAll("table").forEach(function (t) {
+          var p = t.parentElement;
+          if (p && p.classList.contains("table-wrap")) return;
+          var w = document.createElement("div");
+          w.className = "table-wrap";
+          t.parentNode.insertBefore(w, t);
+          w.appendChild(t);
+        });
+
+        var heads = main.querySelectorAll("h2, h3");
+        if (heads.length < 3) return;
+        var toc = document.getElementById("toc");
+        if (!toc) return;
+        var det = document.createElement("details");
+        det.className = "toc-d";
+        var sum = document.createElement("summary");
+        sum.textContent = "On this page";
+        det.appendChild(sum);
+        var ol = document.createElement("ol");
+        var links = {};
+        heads.forEach(function (h) {
+          if (!h.id) {
+            h.id = h.textContent
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-+|-+$/g, "");
+          }
+          var li = document.createElement("li");
+          li.className = "lvl-" + h.tagName.toLowerCase();
+          var a = document.createElement("a");
+          a.href = "#" + h.id;
+          a.textContent = h.textContent;
+          li.appendChild(a);
+          ol.appendChild(li);
+          links[h.id] = a;
+        });
+        det.appendChild(ol);
+        toc.appendChild(det);
+        document.body.classList.add("has-toc");
+
+        if ("IntersectionObserver" in window) {
+          var io = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (e) {
+                if (!e.isIntersecting) return;
+                for (var k in links) links[k].classList.remove("is-current");
+                if (links[e.target.id]) links[e.target.id].classList.add("is-current");
+              });
+            },
+            { rootMargin: "0px 0px -78% 0px", threshold: 0 }
+          );
+          heads.forEach(function (h) {
+            io.observe(h);
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>

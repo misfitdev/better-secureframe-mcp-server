@@ -139,16 +139,25 @@ body.has-toc .rail { display: block; }
 .prose { max-width: var(--measure); margin-inline: auto; }
 
 @media (min-width: 64rem) {
-  /* content left-aligned with the masthead; contents rail on the right */
+  /* The content column is centered identically on EVERY page (TOC or not), so
+     the heading/body left edge never shifts. The contents rail floats in the
+     right gutter and does not affect where content sits. */
   body.has-toc .wrap {
     display: grid;
-    grid-template-columns: minmax(0, var(--measure)) 13rem;
-    gap: clamp(1.75rem, 3vw, 3.25rem);
-    justify-content: center;
+    grid-template-columns: 1fr minmax(0, var(--measure)) 1fr;
+    column-gap: clamp(1.5rem, 3vw, 3rem);
     align-items: start;
   }
-  body.has-toc .prose { margin-inline: 0; order: 1; }
-  .rail { order: 2; position: sticky; top: var(--s-5); max-height: calc(100vh - 3rem); overflow: auto; }
+  body.has-toc .prose { grid-column: 2; margin-inline: 0; }
+  .rail {
+    grid-column: 3;
+    justify-self: start;
+    max-width: 14rem;
+    position: sticky;
+    top: var(--s-5);
+    max-height: calc(100vh - 3rem);
+    overflow: auto;
+  }
 }
 
 /* ---- contents rail --------------------------------------------------- */

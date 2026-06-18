@@ -1,5 +1,5 @@
 ---
-title: Better Secureframe MCP Server
+title: A Better Secureframe MCP
 kicker: Overview
 dek: A complete, rebuilt MCP server for Secureframe, plus an evidence-first audit of the API's read surface.
 ---

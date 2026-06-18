@@ -53,6 +53,46 @@ relationship client-side from fragile denormalized strings.
 
 ---
 
+## The trap: what careful reading gets you
+
+The damning part isn't that the API has bugs — every API does. It's that the
+documentation **reliably leads a competent engineer to the wrong conclusion**,
+and the API then fails **silently**: empty arrays, zero rows, dropped fields —
+not errors. For a compliance system of record, silent-empty is the worst
+possible failure mode, because *"no results"* reads as *"nothing is wrong / you
+are compliant."* This API will tell you everything is fine while returning you
+nothing.
+
+None of the inferences below are sloppy. Each is the conclusion you reach by
+reading the OpenAPI spec and developer docs *carefully*. The API does not reward
+careful reading; it punishes it.
+
+| What the docs lead a careful engineer to conclude | What the API actually does | How you find out |
+|---|---|---|
+| "The endpoint supports Lucene filtering and `implementation_status` is in the schema, so I can filter controls by it." | **HTTP 400** `not filterable by implementation_status`. The spec never lists *which* fields are filterable — and the word "filterable" appears **zero** times in it. | At runtime, in prod, per field |
+| "The response field is `framework_keys`, so I filter by `framework_keys:`." | **400.** The field that actually filters is `frameworks` — a name that appears **nowhere** in the spec. Reading the schema *more* carefully makes you *more* wrong. | 400, then guesswork |
+| "I'll just read `framework_keys` off each test/control." | It's an **empty array on every row.** The thing you can filter by is not in the payload; the thing in the payload is empty. | Silently — you get `[]` |
+| "I set `owner_id` with `PUT /tests/{id}`, so I can read it back and filter by it." | `get`/`list` **never return `owner_id`** (0 of 100), and `q=owner_id:` is **400.** It is write-only. You cannot verify your own write or join tests to people. | You diff your write and it "vanished" |
+| "Every response has a `relationships` object and the docs expose `include`/`relationships` — so I'll pull a test's evidence/controls/framework." | `relationships` is **always `{}`**; `include` is **ignored**. Your graph traversal returns nothing, forever. | Silently — empty graph |
+| "Evidence is a documented resource attached to tests; I'll list a test's evidence and fetch the report." | **No list endpoint** (404), **no link** from the test, and evidence is **metadata-only** (no file/URL). The attached report is unreachable by API. | 404 + a dead end |
+| "`per_page=500` to pull everything; I'll read the total from `meta`." | Silently **capped at 100**; there is **no `meta`/total anywhere.** Your "fetch all" quietly truncates and you ship a partial dataset believing it's complete. | Never — unless you count |
+| "`risk_level:Low` matches the `Low` the API just showed me." | **Zero rows, no error** (TPRM). Legacy vendors store `low`; TPRM shows `Low`; one of them silently matches nothing. | Silently — empty result |
+| "Filtering is filtering; `health_status:Fail` is fine." | **Case-sensitive, zero rows, no error.** On a dashboard, a casing slip renders "0 failing controls." | Silently — looks compliant |
+| "`health_status` is `{healthy, unhealthy, draft}` per the schema." | Production data contains **`unmapped`** (controls) and **`not_applicable`** (requirements). Your enum validation rejects real data. | Exception on live data |
+| "`asset_value` / `exposure_factor` are numbers." | Returned as **strings** — inconsistently (a sibling seconds field is an int). Your arithmetic or typed deserialization breaks. | Type error / `NaN` |
+| "`data_collected` has one shape." | **Object** on legacy vendors, **array** on TPRM vendors. Same name, same concept, two shapes. Your parser crashes on whichever you didn't test. | Crash on the other endpoint |
+| "Personnel, devices, and accounts are all modeled, so I can build a person→asset inventory." | **No field links a device to a person.** Accounts link to people only by **email** string-matching. An authoritative ownership inventory is **impossible**. | When the auditor asks |
+| "Knowledge-base answers list like questions do." | Answers **404** (no list); questions have an **undocumented** working list; and you can't get from a question to its answers (relationships empty). | 404 + asymmetry |
+
+The through-line: **the spec is not technically lying — it is lying by
+omission**, and it pairs that omission with silent-empty failures. It documents
+generic Lucene filtering but never the filterable set; it ships a relationships
+envelope it never populates; it defines enums it then violates; it returns
+shapes its own schema doesn't describe. The only reliable specification of this
+API is the running API.
+
+---
+
 ## Method & anonymization
 
 - Requests were issued read-only against a live tenant using ordinary API

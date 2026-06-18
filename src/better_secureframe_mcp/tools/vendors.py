@@ -17,7 +17,6 @@ async def list_vendors(
     risk_level: RiskLevel | None = None,
     archived: bool | None = None,
     name: str | None = None,
-    owner_id: str | None = None,
     q: Annotated[str | None, Field(description="Advanced raw Lucene query")] = None,
     fields: list[str] | None = None,
     page: int = 1,
@@ -32,7 +31,6 @@ async def list_vendors(
             "risk_level": risk_level,
             "archived": archived,
             "name": name,
-            "owner_id": owner_id,
         },
         q=q,
         page=page,
@@ -79,7 +77,6 @@ async def archive_vendor(
 async def list_tprm_vendors(
     risk_level: RiskLevel | None = None,
     archived: bool | None = None,
-    vendor_status: Literal["draft", "completed"] | None = None,
     name: str | None = None,
     q: Annotated[str | None, Field(description="Advanced raw Lucene query")] = None,
     fields: list[str] | None = None,
@@ -94,7 +91,6 @@ async def list_tprm_vendors(
         filters={
             "risk_level": risk_level,
             "archived": archived,
-            "vendor_status": vendor_status,
             "name": name,
         },
         q=q,

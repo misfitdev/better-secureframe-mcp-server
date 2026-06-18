@@ -12,30 +12,31 @@ from . import _common as c
 
 @mcp.tool(annotations=c.READ, tags={"risks", "read"})
 async def list_risks(
-    status: Annotated[str | None, Field(description="Risk status")] = None,
-    treatment: Annotated[
-        str | None, Field(description="Treatment decision, e.g. mitigate, accept")
+    q: Annotated[
+        str | None,
+        Field(
+            description=(
+                "Raw Lucene query. The risks endpoint exposes no verified "
+                "structured filter fields (status/treatment/source/owner_id all "
+                "return HTTP 400 'not filterable'), so filtering is via raw q only."
+            )
+        ),
     ] = None,
-    source: str | None = None,
-    responsible_team: str | None = None,
-    owner_id: str | None = None,
-    q: Annotated[str | None, Field(description="Advanced raw Lucene query")] = None,
     fields: list[str] | None = None,
     page: int = 1,
     per_page: int = 100,
     auto_paginate: bool = False,
     include_relationships: bool = False,
 ) -> dict[str, Any]:
-    """List risks from the risk register with structured filtering."""
+    """List risks from the risk register.
+
+    Note: the Secureframe API rejects (400) every obvious risk filter field, so
+    this tool offers no structured filters — use `q` if you know a filterable
+    field, otherwise page through and filter client-side.
+    """
     return await c.list_resource(
         "/risks",
-        filters={
-            "status": status,
-            "treatment": treatment,
-            "source": source,
-            "responsible_team": responsible_team,
-            "owner_id": owner_id,
-        },
+        filters=None,
         q=q,
         page=page,
         per_page=per_page,

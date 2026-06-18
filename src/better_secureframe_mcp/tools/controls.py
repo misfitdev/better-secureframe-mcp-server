@@ -12,8 +12,7 @@ from . import _common as c
 
 @mcp.tool(annotations=c.READ, tags={"controls", "read"})
 async def list_controls(
-    health_status: Literal["healthy", "unhealthy", "draft"] | None = None,
-    implementation_status: Literal["implemented", "not_implemented"] | None = None,
+    health_status: Literal["healthy", "unhealthy", "draft", "unmapped"] | None = None,
     framework: Annotated[
         str | None, Field(description="Framework key, e.g. soc2_alpha, iso27001_2022")
     ] = None,
@@ -42,7 +41,6 @@ async def list_controls(
         "/controls",
         filters={
             "health_status": health_status,
-            "implementation_status": implementation_status,
             "frameworks": framework,
             "custom": custom,
             "enabled": enabled,

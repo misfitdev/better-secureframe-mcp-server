@@ -74,7 +74,12 @@ are equivalent — see the README for each.
 You talk to the assistant in plain English ("show me failing SOC 2 controls");
 it maps that to a typed tool call (`list_controls(health_status="unhealthy",
 framework="soc2_alpha")`); the server compiles the Lucene query the API requires.
-The `secureframe://reference/*` resources document the filterable fields.
+You don't need to know the field names — describe what you want in plain English
+and the assistant maps it. If you want the human-readable list of which fields
+actually filter on each resource (and their allowed values), see
+[PARAMETER_REFERENCE.md](https://github.com/misfitdev/better-secureframe-mcp-server/blob/main/PARAMETER_REFERENCE.md).
+(The server also ships this as machine-readable data the assistant consults
+automatically — you never fetch it yourself.)
 
 ## Provenance
 

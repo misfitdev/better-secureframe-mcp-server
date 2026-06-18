@@ -39,8 +39,9 @@ install/usage plus the **[Secureframe API Empirical Reality Report](https://misf
   caps each page at 100 records).
 - **Smaller responses** — the JSON:API envelope is flattened, nulls dropped, and
   `fields=[...]` lets you project only what you need.
-- **Discovery resources** — `secureframe://reference/*` resources document the
-  filterable fields, enum values, and framework keys per resource.
+- **Discovery built in** — the assistant can look up the filterable fields, enum
+  values, and framework keys for each resource (so it stops guessing). The
+  human-readable version is [`PARAMETER_REFERENCE.md`](PARAMETER_REFERENCE.md).
 - **Workflow prompts** — ready-made flows for audit readiness, failing-control
   review, vendor risk, access review, and evidence gaps.
 - **Write safety** — tools carry MCP annotations (`readOnlyHint`,
@@ -228,8 +229,8 @@ that burden so nobody hand-writes Lucene:
 So yes — through a chatbot it's natural language in, the right records out, with
 no Lucene written by anyone. The reason it's reliable (rather than the model
 guessing field names) is that the tools expose the filterable fields as typed,
-enum-constrained parameters, and the `secureframe://reference/*` resources list
-the legal fields and values. The model fills in the blanks; the server, not the
+enum-constrained parameters (and the server ships the verified field/value lists
+for the assistant to consult). The model fills in the blanks; the server, not the
 model, generates the query string.
 
 You can also call the tools directly in code with the same typed parameters:
@@ -256,8 +257,11 @@ is ANDed with any structured filters:
 list_tests(health_status="fail", q="next_due_date:[* TO 2026-01-01]")
 ```
 
-The `secureframe://reference/fields/{entity}`, `.../enums`, and
-`.../frameworks` resources list what each resource supports.
+You don't need to memorize field names — describe what you want and the
+assistant maps it. The verified, human-readable list of which fields actually
+filter (and their allowed values) is in
+[`PARAMETER_REFERENCE.md`](PARAMETER_REFERENCE.md). (Under the hood the assistant
+reads the same data automatically; you never fetch anything yourself.)
 
 ---
 
@@ -341,10 +345,12 @@ client, including ones that don't support tool search.
 
 ## Resources & prompts
 
-**Resources** (reference data the assistant can read):
-- `secureframe://reference/fields` and `.../fields/{entity}`
-- `secureframe://reference/enums`
-- `secureframe://reference/frameworks`
+**Resources** — machine-readable reference data the MCP client/assistant loads
+automatically (you never fetch these by hand; for the human version see
+[`PARAMETER_REFERENCE.md`](PARAMETER_REFERENCE.md)):
+- `secureframe://reference/fields` and `.../fields/{entity}` — fields per resource
+- `secureframe://reference/enums` — allowed enum values
+- `secureframe://reference/frameworks` — framework keys
 
 **Prompts** (multi-step workflows): `failing_controls_review`,
 `audit_readiness`, `vendor_risk_review`, `access_review`, `evidence_gaps`.

@@ -16,7 +16,6 @@ from . import _common as c
 @mcp.tool(annotations=c.READ, tags={"trust_center", "read"})
 async def list_trust_center_requests(
     reviewed: bool | None = None,
-    company_name: str | None = None,
     email: str | None = None,
     q: Annotated[str | None, Field(description="Advanced raw Lucene query")] = None,
     fields: list[str] | None = None,
@@ -28,7 +27,7 @@ async def list_trust_center_requests(
     """List Trust Center access requests."""
     return await c.list_resource(
         "/trust_center_requests",
-        filters={"reviewed": reviewed, "company_name": company_name, "email": email},
+        filters={"reviewed": reviewed, "email": email},
         q=q,
         page=page,
         per_page=per_page,

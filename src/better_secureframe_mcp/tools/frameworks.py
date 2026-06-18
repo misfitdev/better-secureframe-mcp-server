@@ -12,20 +12,22 @@ from . import _common as c
 
 @mcp.tool(annotations=c.READ, tags={"frameworks", "read"})
 async def list_frameworks(
-    key: Annotated[
-        str | None, Field(description="Framework key, e.g. soc2_alpha")
+    q: Annotated[
+        str | None,
+        Field(
+            description="Raw Lucene query (the frameworks endpoint has no verified structured filters)"
+        ),
     ] = None,
-    q: Annotated[str | None, Field(description="Advanced raw Lucene query")] = None,
     fields: list[str] | None = None,
     page: int = 1,
     per_page: int = 100,
     auto_paginate: bool = False,
     include_relationships: bool = False,
 ) -> dict[str, Any]:
-    """List compliance frameworks enabled for the company."""
+    """List compliance frameworks enabled for the company (typically a short list)."""
     return await c.list_resource(
         "/frameworks",
-        filters={"key": key},
+        filters=None,
         q=q,
         page=page,
         per_page=per_page,
@@ -51,7 +53,9 @@ async def get_framework(
 
 @mcp.tool(annotations=c.READ, tags={"frameworks", "read"})
 async def list_framework_requirements(
-    health_status: Literal["pass", "fail", "na", "draft"] | None = None,
+    health_status: (
+        Literal["pass", "fail", "na", "not_applicable", "draft"] | None
+    ) = None,
     enabled: bool | None = None,
     key: str | None = None,
     q: Annotated[str | None, Field(description="Advanced raw Lucene query")] = None,

@@ -17,7 +17,6 @@ async def list_user_accounts(
         bool | None, Field(description="Whether the account is linked to a person")
     ] = None,
     email: str | None = None,
-    username: str | None = None,
     vendor_name: str | None = None,
     q: Annotated[str | None, Field(description="Advanced raw Lucene query")] = None,
     fields: list[str] | None = None,
@@ -33,7 +32,6 @@ async def list_user_accounts(
             "active": active,
             "has_user": has_user,
             "email": email,
-            "username": username,
             "vendor_name": vendor_name,
         },
         q=q,

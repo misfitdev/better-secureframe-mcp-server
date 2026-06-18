@@ -1,5 +1,5 @@
 ---
-title: "Secureframe API: an empirical reality report"
+title: "The Secureframe API, for real"
 kicker: Field report · read side
 dek: What the API actually returns and supports, versus what its docs imply. Verified against a live account, read-only, fully anonymized.
 ---

@@ -1,11 +1,11 @@
 ---
 title: MCP server
 kicker: Install & usage
-dek: Install the server and connect it to Claude Code, Claude Desktop, Cursor, Codex, or Gemini.
+dek: Installing the server and wiring it into an MCP client.
 ---
 
-Read + write access to the Secureframe compliance platform (SOC 2, ISO 27001,
-CMMC, FedRAMP, HIPAA, and more) for AI assistants like Claude and Cursor.
+Full read and write access to the Secureframe compliance platform, for AI
+assistants.
 
 > ⚠️ This server can **read and write** your compliance data. Destructive
 > operations require `confirm=true`; the whole server can be locked read-only
@@ -29,35 +29,67 @@ For the authoritative, always-current version of everything below, see the
 > Reality check: the underlying Secureframe API is inconsistent about which
 > fields are actually filterable, never returns `owner_id`, and exposes no
 > entity relationships. See the
-> **[API Empirical Reality Report](api-reality-report.md)** for the full picture
+> **[The Secureframe API, for real](api-reality-report.md)** for the full picture
 > of what is and isn't possible — it explains why some otherwise-obvious tools
 > (e.g. updating a control's owner, listing a test's evidence) don't exist.
 
 ## Install
+
+You need Secureframe API credentials (key + secret). The fastest path needs no
+clone: [`uv`](https://docs.astral.sh/uv/) fetches, builds, and runs the server
+straight from GitHub.
+
+```bash
+uvx --from git+https://github.com/misfitdev/better-secureframe-mcp-server.git better-secureframe-mcp
+```
+
+Prefer a local checkout? Clone and install the `better-secureframe-mcp` console
+script instead:
 
 ```bash
 git clone https://github.com/misfitdev/better-secureframe-mcp-server.git
 cd better-secureframe-mcp-server
 python -m venv .venv && source .venv/bin/activate
 pip install -e .
-cp env.example .env   # add your credentials
 ```
-
-This provides the `better-secureframe-mcp` console script (stdio transport).
 
 ## Connect a client
 
-Use the absolute path to the console script. Example for Claude Code:
+Add this to your client's MCP config. Claude Desktop
+(`claude_desktop_config.json`), Cursor (`~/.cursor/mcp.json`), VS Code, and most
+clients use this `mcpServers` shape:
+
+```json
+{
+  "mcpServers": {
+    "better-secureframe": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/misfitdev/better-secureframe-mcp-server.git",
+        "better-secureframe-mcp"
+      ],
+      "env": {
+        "SECUREFRAME_API_KEY": "your_key",
+        "SECUREFRAME_API_SECRET": "your_secret"
+      }
+    }
+  }
+}
+```
+
+Claude Code, one command:
 
 ```bash
 claude mcp add better-secureframe \
   -e SECUREFRAME_API_KEY=your_key -e SECUREFRAME_API_SECRET=your_secret \
-  -- /abs/path/.venv/bin/better-secureframe-mcp
+  -- uvx --from git+https://github.com/misfitdev/better-secureframe-mcp-server.git better-secureframe-mcp
 ```
 
-Claude Desktop / Cursor (`mcpServers` JSON), Codex (`codex mcp add` /
-`~/.codex/config.toml`), and Gemini (`gemini mcp add` / `~/.gemini/settings.json`)
-are equivalent — see the README for each.
+Codex (`~/.codex/config.toml`) and Gemini (`~/.gemini/settings.json`) take the
+same `command` / `args` / `env` in their own format. Installed from a clone
+instead of `uvx`? Set `command` to the absolute path of
+`.venv/bin/better-secureframe-mcp` and drop the `args`.
 
 ### Environment variables
 
@@ -83,8 +115,7 @@ automatically — you never fetch it yourself.)
 
 ## Provenance
 
-Releases ship with SLSA build provenance via `actions/attest-build-provenance`.
-Verify a downloaded artifact:
+Verify a release artifact's build provenance:
 
 ```bash
 gh attestation verify <file> --repo misfitdev/better-secureframe-mcp-server

@@ -2,8 +2,7 @@
 
 A complete, modern [Model Context Protocol](https://modelcontextprotocol.io/)
 server for the [Secureframe](https://secureframe.com) compliance automation
-platform. It gives AI assistants like Claude and Cursor structured access to
-your compliance data across SOC 2, ISO 27001, CMMC, FedRAMP, HIPAA, and more —
+platform. It gives AI assistants structured access to your compliance data —
 controls, tests, risks, vendors, evidence, personnel, and the rest of the API.
 
 > **Why "Better"?** This started as the official
@@ -23,7 +22,7 @@ controls, tests, risks, vendors, evidence, personnel, and the rest of the API.
 > review AI-generated changes before relying on them.
 
 📖 **Docs site:** <https://misfitdev.github.io/better-secureframe-mcp-server/> —
-install/usage plus the **[Secureframe API Empirical Reality Report](https://misfitdev.github.io/better-secureframe-mcp-server/api-reality-report.html)**
+install/usage plus **[The Secureframe API, for real](https://misfitdev.github.io/better-secureframe-mcp-server/api-reality-report.html)**
 (an evidence-first, anonymized audit of what the API actually supports).
 
 ---
@@ -379,8 +378,8 @@ pre-push runs the test suite.
 
 CI (`.github/workflows/ci.yml`) lints, tests across Python 3.10–3.13, and builds
 the package. Tagging `vX.Y.Z` triggers `release.yml`, which builds, generates
-SLSA build provenance (`actions/attest-build-provenance`), and cuts a GitHub
-Release. (PyPI publishing is present but commented out.) Verify provenance with:
+SLSA build provenance, and cuts a GitHub Release. (PyPI publishing is present but
+commented out.) Verify provenance with:
 
 ```bash
 gh attestation verify <downloaded-file> --repo misfitdev/better-secureframe-mcp-server

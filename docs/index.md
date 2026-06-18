@@ -16,14 +16,14 @@ from scratch.
 
 ## Start here
 
-**[The API reality report](api-reality-report.md)** is the reason this exists. It
-documents what the Secureframe REST API actually returns and supports versus what
-its docs imply, verified read-only against a live account and fully anonymized.
-Read it if you touch the API at all.
+**[The Secureframe API, for real](api-reality-report.md)** is the reason this
+project exists. It documents what the Secureframe REST API actually returns and
+supports versus what its docs imply, verified read-only against a live account
+and fully anonymized. Read it if you touch the API at all.
 
 **[MCP server: install and usage](mcp-server.md)** covers installing the server
-and wiring it into Claude Code, Claude Desktop, Cursor, Codex, or Gemini,
-filtering without Lucene, and the full tool catalog.
+and wiring it into your MCP client, filtering without Lucene, and the full tool
+catalog.
 
 ## Source
 

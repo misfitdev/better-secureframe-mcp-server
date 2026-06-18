@@ -139,26 +139,19 @@ body.has-toc .rail { display: block; }
 .prose { max-width: var(--measure); margin-inline: auto; }
 
 @media (min-width: 64rem) {
+  /* content left-aligned with the masthead; contents rail on the right */
   body.has-toc .wrap {
     display: grid;
-    grid-template-columns: 14rem minmax(0, var(--measure));
-    gap: clamp(2rem, 5vw, 5rem);
-    justify-content: center;
+    grid-template-columns: minmax(0, var(--measure)) 13rem;
+    gap: clamp(1.75rem, 3vw, 3.25rem);
     align-items: start;
   }
-  body.has-toc .prose { margin-inline: 0; }
-  .rail { position: sticky; top: var(--s-5); max-height: calc(100vh - 3rem); overflow: auto; }
+  body.has-toc .prose { margin-inline: 0; order: 1; }
+  .rail { order: 2; position: sticky; top: var(--s-5); max-height: calc(100vh - 3rem); overflow: auto; }
 }
 
 /* ---- contents rail --------------------------------------------------- */
-.rail-doc {
-  margin: 0 0 var(--s-3);
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
-@media (max-width: 63.99rem) { .rail-doc { display: none; } .rail { margin-bottom: var(--s-5); } }
+@media (max-width: 63.99rem) { .rail { margin-bottom: var(--s-5); } }
 
 .toc-d summary {
   cursor: pointer;

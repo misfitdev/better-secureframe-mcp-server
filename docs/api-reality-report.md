@@ -4,14 +4,9 @@ kicker: Field report · read side
 dek: What the API actually returns and supports, versus what its docs imply. Verified against a live account, read-only, fully anonymized.
 ---
 
-> An evidence-first, falsification-style audit of what the Secureframe REST API
-> **actually** returns and supports, versus what its OpenAPI document and
-> developer docs **imply**. Every claim here was verified against a live
-> production account; nothing is taken from the docs on faith.
-
 **Status:** independent analysis. Not affiliated with or endorsed by Secureframe.
 **Probed:** 2026-06-18, read-only (no writes), single production tenant.
-**Scope:** the read surface — `list`, `get`, sub-resources, filtering, pagination,
+**Scope:** the read surface: `list`, `get`, sub-resources, filtering, pagination,
 relationships. Writes were deliberately **not** exercised (live account).
 
 ---
@@ -263,9 +258,9 @@ workarounds · **S3** = friction / correctness footgun.
 
 ---
 
-## Appendix — anonymized sample records
+## Appendix: example records
 
-Representative records, fully pseudonymized (structure preserved, values fake):
+Example records:
 
 ```json
 // user

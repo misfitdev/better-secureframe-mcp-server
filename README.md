@@ -22,6 +22,10 @@ controls, tests, risks, vendors, evidence, personnel, and the rest of the API.
 > server can be locked to read-only with `SECUREFRAME_READ_ONLY=true`. Always
 > review AI-generated changes before relying on them.
 
+📖 **Docs site:** <https://misfitdev.github.io/better-secureframe-mcp-server/> —
+install/usage plus the **[Secureframe API Empirical Reality Report](https://misfitdev.github.io/better-secureframe-mcp-server/api-reality-report.html)**
+(an evidence-first, anonymized audit of what the API actually supports).
+
 ---
 
 ## What's new

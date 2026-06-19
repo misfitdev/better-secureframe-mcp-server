@@ -23,8 +23,7 @@
         </a>
         {% assign p = page.url %}
         <nav class="nav" aria-label="Primary">
-          <a href="{{ '/' | relative_url }}"{% if p == '/' %} aria-current="page"{% endif %}>Overview</a>
-          <a href="{{ '/mcp-server.html' | relative_url }}"{% if p contains 'mcp-server' %} aria-current="page"{% endif %}>Install</a>
+          <a href="{{ '/' | relative_url }}"{% if p == '/' %} aria-current="page"{% endif %}>Get started</a>
           <a href="{{ '/api-reality-report.html' | relative_url }}"{% if p contains 'reality' %} aria-current="page"{% endif %}>API report</a>
           <a class="nav-ext" href="https://github.com/misfitdev/better-secureframe-mcp-server">Source <span aria-hidden="true">↗</span></a>
         </nav>
@@ -42,7 +41,9 @@
         <header class="page-head">
           {% if page.kicker %}<p class="kicker">{{ page.kicker }}</p>{% endif %}
           <h1>{{ page.title }}</h1>
+
           {% if page.dek %}<p class="dek">{{ page.dek }}</p>{% endif %}
+
         </header>
         {{ content }}
       </main>

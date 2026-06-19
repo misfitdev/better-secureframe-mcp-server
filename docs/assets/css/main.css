@@ -25,8 +25,8 @@
   --font: "Spline Sans Mono", ui-monospace, "SF Mono", "SFMono-Regular", Menlo,
     Consolas, monospace;
 
-  --measure: 74ch;   /* reading line length for body copy */
-  --column: 92ch;    /* content column width; tables and code use it all */
+  --measure: 84ch;   /* the centered reading column */
+  --column: 84ch;    /* kept equal so tables stay within the column */
   --rhythm: 1.6;
 
   --s-1: 0.25rem;
@@ -137,24 +137,24 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-
 }
 .rail { display: none; }
 body.has-toc .rail { display: block; }
-.prose { max-width: var(--column); margin-inline: auto; }
-/* Text sits at a readable measure; tables and code break out to the full
-   (wider) column so wide tables stop pinching and scrolling sideways. */
+.prose { max-width: var(--measure); margin-inline: auto; }
+/* Everything sits within the reading column and wraps rather than scrolling.
+   Tables size to their own content: narrow tables stay compact, wide ones wrap
+   to fit the column. */
 .prose > * { max-width: var(--measure); }
-.prose > .table-wrap,
-.prose > pre { max-width: none; }
+.prose > .table-wrap { width: fit-content; max-width: 100%; }
 
 @media (min-width: 64rem) {
-  /* The content column is centered identically on EVERY page (TOC or not), so
-     the heading/body left edge never shifts. The contents rail floats in the
-     right gutter and does not affect where content sits. */
+  /* A centered reading column. The contents rail floats in the right margin
+     (equal 1fr gutters both sides) so it never pushes the column off-center and
+     the section rules stay balanced in the middle. */
   body.has-toc .wrap {
     display: grid;
-    grid-template-columns: 1fr minmax(0, var(--column)) 1fr;
-    column-gap: clamp(1.5rem, 3vw, 3rem);
+    grid-template-columns: 1fr minmax(0, var(--measure)) 1fr;
+    column-gap: clamp(1.75rem, 3.5vw, 3.5rem);
     align-items: start;
   }
-  body.has-toc .prose { grid-column: 2; margin-inline: 0; }
+  body.has-toc .prose { grid-column: 2; margin-inline: 0; max-width: none; }
   .rail {
     grid-column: 3;
     justify-self: start;
@@ -324,6 +324,8 @@ code, pre, kbd, samp { font-family: var(--font); font-variant-ligatures: none; }
   border-radius: 5px;
   padding: var(--s-4) var(--s-4);
   overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
   font-size: 0.84rem;
   line-height: 1.55;
   tab-size: 2;
@@ -342,7 +344,7 @@ code, pre, kbd, samp { font-family: var(--font); font-variant-ligatures: none; }
 /* ---- tables (the centerpiece) --------------------------------------- */
 .table-wrap { overflow-x: auto; margin: var(--s-5) 0; border: 1px solid var(--rule); border-radius: 5px; }
 .prose table {
-  width: 100%;
+  width: auto;
   border-collapse: collapse;
   font-size: 0.84rem;
   font-variant-numeric: tabular-nums;
@@ -356,13 +358,12 @@ code, pre, kbd, samp { font-family: var(--font); font-variant-ligatures: none; }
   text-transform: uppercase;
   color: var(--ink-2);
   background: var(--paper-3);
-  padding: 0.5rem 0.7rem;
+  padding: 0.6rem 0.85rem;
   border-bottom: 2px solid var(--ink);
-  white-space: nowrap;
 }
 .prose tbody td {
   vertical-align: top;
-  padding: 0.5rem 0.7rem;
+  padding: 0.6rem 0.85rem;
   border-bottom: 1px solid var(--rule);
   line-height: 1.45;
 }

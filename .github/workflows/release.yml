@@ -10,22 +10,17 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write # sign the provenance attestation via OIDC
-      attestations: write # record the attestation on the repo
+    outputs:
+      hashes: ${{ steps.hash.outputs.hashes }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4.2.0
       - run: just install
       - run: just build
-      # SLSA build provenance via GitHub's native attestation (Node 24, no
-      # third-party reusable workflow). Verify with:
-      #   gh attestation verify <file> --repo misfitdev/better-secureframe-mcp-server
-      - name: Attest build provenance
-        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
-        with:
-          subject-path: dist/*
+      - name: Generate SLSA subject hashes
+        id: hash
+        working-directory: dist
+        run: echo "hashes=$(sha256sum -- * | base64 -w0)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dist
@@ -61,3 +56,21 @@ jobs:
         with:
           files: dist/*
           generate_release_notes: true
+
+  # SLSA Build L3 provenance: a signed, non-falsifiable attestation generated in
+  # an isolated reusable workflow that the build job cannot tamper with (this is
+  # the isolation that distinguishes L3 from same-job L2). The generator MUST be
+  # pinned to a semver tag, not a commit SHA, so slsa-verifier can verify the
+  # builder identity. Runs after github-release and uploads
+  # provenance.intoto.jsonl to the existing v* release. Verify a downloaded
+  # artifact with `slsa-verifier verify-artifact`.
+  provenance:
+    needs: [build, github-release]
+    permissions:
+      actions: read # detect the GitHub Actions environment
+      id-token: write # sign provenance via OIDC (Sigstore)
+      contents: write # upload provenance to the release
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: "${{ needs.build.outputs.hashes }}"
+      upload-assets: true

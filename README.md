@@ -377,12 +377,16 @@ just refresh-spec # re-vendor docs/openapi.yaml from the live docs
 pre-push runs the test suite.
 
 CI (`.github/workflows/ci.yml`) lints, tests across Python 3.10–3.13, and builds
-the package. Tagging `vX.Y.Z` triggers `release.yml`, which builds, generates
-SLSA build provenance, and cuts a GitHub Release. (PyPI publishing is present but
-commented out.) Verify provenance with:
+the package. Tagging `vX.Y.Z` triggers `release.yml`, which builds, cuts a GitHub
+Release, and generates **SLSA Build L3** provenance via the
+`slsa-github-generator` reusable workflow (provenance generation runs isolated
+from the build job). (PyPI publishing is present but commented out.) Verify a
+downloaded artifact with:
 
 ```bash
-gh attestation verify <downloaded-file> --repo misfitdev/better-secureframe-mcp-server
+slsa-verifier verify-artifact <downloaded-file> \
+  --provenance-path provenance.intoto.jsonl \
+  --source-uri github.com/misfitdev/better-secureframe-mcp-server
 ```
 
 The vendored OpenAPI spec lives at `docs/openapi.yaml`; `src/better_secureframe_mcp/schema.py`

@@ -112,10 +112,12 @@ The full tool catalog and the always-current reference live in the
 
 ## Provenance
 
-Verify a release artifact's build provenance:
+Verify a release artifact's SLSA build provenance:
 
 ```bash
-gh attestation verify <file> --repo misfitdev/better-secureframe-mcp-server
+slsa-verifier verify-artifact <file> \
+  --provenance-path provenance.intoto.jsonl \
+  --source-uri github.com/misfitdev/better-secureframe-mcp-server
 ```
 
 ## Source

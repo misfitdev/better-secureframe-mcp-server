@@ -1,4 +1,9 @@
-"""Risk register tools (read-only)."""
+"""Risk register tools (read-only).
+
+Note: Nested includes (e.g., include=owner.user) are non-functional in the
+Secureframe API. Testing shows that include=owner,owner.user returns
+byte-identical responses to include=owner. Use include=owner only.
+"""
 
 from __future__ import annotations
 
@@ -33,6 +38,10 @@ async def list_risks(
     Note: the Secureframe API rejects (400) every obvious risk filter field, so
     this tool offers no structured filters — use `q` if you know a filterable
     field, otherwise page through and filter client-side.
+
+    Also note: nested includes (e.g., include=owner.user) are non-functional.
+    Testing shows byte-identical responses for include=owner vs
+    include=owner,owner.user. Use include=owner only.
     """
     return await c.list_resource(
         "/risks",

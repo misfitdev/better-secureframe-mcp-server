@@ -1,4 +1,7 @@
-"""User (personnel) tools: read, update, evidence upload."""
+"""User (personnel) tools: read, update, evidence upload.
+
+All filterable fields extracted from the OpenAPI spec description tables.
+"""
 
 from __future__ import annotations
 
@@ -20,6 +23,17 @@ async def list_users(
     email: str | None = None,
     department_id: str | None = None,
     onboarding_status: str | None = None,
+    first_name: str | None = None,
+    last_name: str | None = None,
+    name: str | None = None,
+    end_date: str | None = None,
+    invited: bool | None = None,
+    invited_at: str | None = None,
+    personnel_status: str | None = None,
+    preferred_first_name: str | None = None,
+    secureframe_agent_acknowledged_at: str | None = None,
+    start_date: str | None = None,
+    title: str | None = None,
     q: Annotated[str | None, Field(description="Advanced raw Lucene query")] = None,
     fields: list[str] | None = None,
     page: int = 1,
@@ -27,7 +41,10 @@ async def list_users(
     auto_paginate: bool = False,
     include_relationships: bool = False,
 ) -> dict[str, Any]:
-    """List personnel and their compliance status with structured filtering."""
+    """List personnel and their compliance status with structured filtering.
+
+    All filterable fields from the OpenAPI spec description tables are supported.
+    """
     return await c.list_resource(
         "/users",
         filters={
@@ -37,6 +54,17 @@ async def list_users(
             "email": email,
             "department_id": department_id,
             "onboarding_status": onboarding_status,
+            "first_name": first_name,
+            "last_name": last_name,
+            "name": name,
+            "end_date": end_date,
+            "invited": invited,
+            "invited_at": invited_at,
+            "personnel_status": personnel_status,
+            "preferred_first_name": preferred_first_name,
+            "secureframe_agent_acknowledged_at": secureframe_agent_acknowledged_at,
+            "start_date": start_date,
+            "title": title,
         },
         q=q,
         page=page,

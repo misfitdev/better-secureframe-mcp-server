@@ -1,15 +1,23 @@
-"""MCP resources exposing filterable fields, enums, and framework keys.
-
-These let a client discover what it can filter on (and the allowed values)
-without guessing or hand-writing Lucene.
-"""
-
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from ..app import mcp
 from ..schema import ENUMS, FRAMEWORK_KEYS, SEARCHABLE_FIELDS
+
+SPEC_PATH = Path(__file__).parent.parent.parent.parent / "docs" / "openapi.yaml"
+_OPENAPI_SPEC = None
+
+
+def _get_openapi_spec() -> dict:
+    global _OPENAPI_SPEC
+    if _OPENAPI_SPEC is None:
+        import yaml
+
+        with open(SPEC_PATH, "r") as f:
+            _OPENAPI_SPEC = yaml.safe_load(f)
+    return _OPENAPI_SPEC
 
 
 @mcp.resource(
@@ -18,7 +26,6 @@ from ..schema import ENUMS, FRAMEWORK_KEYS, SEARCHABLE_FIELDS
     mime_type="application/json",
 )
 def all_fields() -> dict[str, list[str]]:
-    """The filterable Lucene fields for every resource."""
     return SEARCHABLE_FIELDS
 
 
@@ -28,7 +35,6 @@ def all_fields() -> dict[str, list[str]]:
     mime_type="application/json",
 )
 def entity_fields(entity: str) -> dict[str, Any]:
-    """Filterable Lucene fields for one resource (e.g. tests, controls, users)."""
     fields = SEARCHABLE_FIELDS.get(entity)
     if fields is None:
         return {
@@ -44,7 +50,6 @@ def entity_fields(entity: str) -> dict[str, Any]:
     mime_type="application/json",
 )
 def enums() -> dict[str, list[str]]:
-    """Allowed values for common enumerated filter fields."""
     return ENUMS
 
 
@@ -54,5 +59,22 @@ def enums() -> dict[str, list[str]]:
     mime_type="application/json",
 )
 def framework_keys() -> dict[str, list[str]]:
-    """Common framework keys for the ``framework`` filter / ``framework_keys`` field."""
     return {"framework_keys": FRAMEWORK_KEYS}
+
+
+@mcp.resource(
+    "secureframe://reference/openapi",
+    name="Secureframe OpenAPI Spec (full)",
+    mime_type="application/yaml",
+)
+def openapi_spec() -> str:
+    return SPEC_PATH.read_text()
+
+
+@mcp.resource(
+    "secureframe://reference/openapi/json",
+    name="Secureframe OpenAPI Spec (JSON)",
+    mime_type="application/json",
+)
+def openapi_spec_json() -> dict[str, Any]:
+    return _get_openapi_spec()

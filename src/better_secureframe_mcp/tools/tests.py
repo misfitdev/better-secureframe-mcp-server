@@ -1,4 +1,7 @@
-"""Test (compliance check) tools: read, update, evidence upload, exports."""
+"""Test (compliance check) tools: read, update, evidence upload, exports.
+
+All filterable fields extracted from the OpenAPI spec description tables.
+"""
 
 from __future__ import annotations
 
@@ -25,6 +28,24 @@ async def list_tests(
     owner_name: str | None = None,
     vendor_name: str | None = None,
     key: str | None = None,
+    author_name: str | None = None,
+    created_at: str | None = None,
+    description: str | None = None,
+    enabled_field_updated_by_user: str | None = None,
+    last_evaluated: str | None = None,
+    next_due_date: str | None = None,
+    pass_filter: str | None = None,
+    passed_with_upload: bool | None = None,
+    promote_at: str | None = None,
+    recommended_action: str | None = None,
+    required_implementation_date: str | None = None,
+    resource_category: str | None = None,
+    status: str | None = None,
+    test_function: str | None = None,
+    test_interval_seconds: str | None = None,
+    title: str | None = None,
+    tolerance_window_seconds: str | None = None,
+    updated_at: str | None = None,
     q: Annotated[str | None, Field(description="Advanced raw Lucene query")] = None,
     fields: list[str] | None = None,
     page: int = 1,
@@ -32,7 +53,10 @@ async def list_tests(
     auto_paginate: bool = False,
     include_relationships: bool = False,
 ) -> dict[str, Any]:
-    """List compliance tests with pass/fail status and structured filtering."""
+    """List compliance tests with pass/fail status and structured filtering.
+
+    All filterable fields from the OpenAPI spec description tables are supported.
+    """
     return await c.list_resource(
         "/tests",
         filters={
@@ -45,6 +69,24 @@ async def list_tests(
             "owner_name": owner_name,
             "vendor_name": vendor_name,
             "key": key,
+            "author_name": author_name,
+            "created_at": created_at,
+            "description": description,
+            "enabled_field_updated_by_user": enabled_field_updated_by_user,
+            "last_evaluated": last_evaluated,
+            "next_due_date": next_due_date,
+            "pass": pass_filter,
+            "passed_with_upload": passed_with_upload,
+            "promote_at": promote_at,
+            "recommended_action": recommended_action,
+            "required_implementation_date": required_implementation_date,
+            "resource_category": resource_category,
+            "status": status,
+            "test_function": test_function,
+            "test_interval_seconds": test_interval_seconds,
+            "title": title,
+            "tolerance_window_seconds": tolerance_window_seconds,
+            "updated_at": updated_at,
         },
         q=q,
         page=page,

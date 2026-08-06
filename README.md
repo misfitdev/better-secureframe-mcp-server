@@ -48,6 +48,42 @@ install/usage plus **[The Secureframe API, for real](https://misfitdev.github.io
 
 ---
 
+## API Quirks & Known Limitations
+
+This server wraps the Secureframe API, which has several quirks that users should
+know about:
+
+1. **Filter schema mismatch (91% match rate)** — 139 of 152 filters match their
+   response field names. The response schema is a reliable guide 91% of the time,
+   but 13 fields (like `implementation_status`) appear in responses but aren't
+   filterable via `q`. The 91% match rate makes this worse, not better — you learn
+   to trust the schema, then the 9% that breaks it bites you with no warning.
+
+2. **No write operations for controls or risks** — The Secureframe API only supports
+   GET operations for controls and risks. You cannot update control owners,
+   implementation status, or risk details via the API. This is a limitation of
+   the Secureframe API, not this MCP server.
+
+3. **Nested includes are non-functional** — `include=owner.user` returns
+   byte-identical responses to `include=owner`. Use single-level includes only
+   (`include=owner`, not `include=owner,owner.user`).
+
+4. **`relationships=true` required for `include`** — The `include` parameter only
+   works when `relationships=true` is also passed. This is documented in the spec
+   but easy to miss.
+
+5. **Empty `framework_keys` are tenant-specific** — Framework keys appear empty
+   until you filter by a specific framework (e.g., `frameworks:soc2_alpha`), then
+   they populate. This is expected behavior, not a bug.
+
+6. **Lucene queries aren't machine-parseable** — The `q` parameter uses Lucene
+   syntax, but OpenAPI 3.0.0 can't express conditional parameter dependencies or
+   machine-parseable Lucene query schemas. Filterable fields end up in markdown
+   tables inside description fields, which defeats the purpose of OpenAPI for
+   programmatic discovery.
+
+---
+
 ## Quick start
 
 ### Prerequisites

@@ -79,23 +79,6 @@ async def list_controls(
         fields=fields,
         include_relationships=include_relationships,
     )
-    return await c.list_resource(
-        "/controls",
-        filters={
-            "health_status": health_status,
-            "frameworks": framework,
-            "custom": custom,
-            "enabled": enabled,
-            "owner_name": owner_name,
-            "key": key,
-        },
-        q=q,
-        page=page,
-        per_page=per_page,
-        auto_paginate=auto_paginate,
-        fields=fields,
-        include_relationships=include_relationships,
-    )
 
 
 @mcp.tool(annotations=c.READ, tags={"controls", "read"})

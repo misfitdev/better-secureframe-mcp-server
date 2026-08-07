@@ -9,8 +9,8 @@ they accept.
 Secureframe's docs, which are wrong about several of them). The Secureframe API
 rejects many "obvious" filters with HTTP 400, silently returns nothing for
 others, and is case-sensitive — see the
-[API Reality Report](https://misfitdev.github.io/better-secureframe-mcp-server/api-reality-report.html)
-for the gory details.
+[API Reference](https://misfitdev.github.io/better-secureframe-mcp-server/)
+for endpoint documentation.
 
 > Behavior to know: filters are **case-sensitive** and a wrong value/casing
 > returns **zero rows with no error** (it looks like "no matches"). Booleans are

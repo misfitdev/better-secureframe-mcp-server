@@ -189,3 +189,4 @@ mise.local.toml
 lefthook-local.yml
 .mise.env.toml
 out.go
+docs/_site/

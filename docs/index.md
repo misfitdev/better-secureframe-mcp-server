@@ -10,10 +10,7 @@ structured (Lucene-free) filtering, write safety, and a real test and CI setup.
 It is an independent rebuild of the official, long-stale
 [`secureframe/secureframe-mcp-server`](https://github.com/secureframe/secureframe-mcp-server)
 (which exposed only a small read-only slice), and is not affiliated with or
-endorsed by Secureframe. If you want to know why the API needed reverse
-engineering, [The Secureframe API, for real](api-reality-report.md) is an
-evidence-first, read-only audit of what it actually does. Optional, but it
-explains the gaps you'll hit.
+endorsed by Secureframe.
 
 **Heads up:** this server can read and write your compliance data. Destructive
 operations require `confirm=true`, and the whole server can be locked read-only

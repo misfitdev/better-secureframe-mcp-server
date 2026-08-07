@@ -24,7 +24,6 @@
         {% assign p = page.url %}
         <nav class="nav" aria-label="Primary">
           <a href="{{ '/' | relative_url }}"{% if p == '/' %} aria-current="page"{% endif %}>Get started</a>
-          <a href="{{ '/api-reality-report.html' | relative_url }}"{% if p contains 'reality' %} aria-current="page"{% endif %}>API report</a>
           <a class="nav-ext" href="https://github.com/misfitdev/better-secureframe-mcp-server">Source <span aria-hidden="true">↗</span></a>
         </nav>
       </div>

@@ -5,13 +5,10 @@ server for the [Secureframe](https://secureframe.com) compliance automation
 platform. It gives AI assistants structured access to your compliance data —
 controls, tests, risks, vendors, evidence, personnel, and the rest of the API.
 
-> **Why "Better"?** This started as the official
-> [`secureframe/secureframe-mcp-server`](https://github.com/secureframe/secureframe-mcp-server),
-> but it exposed only a small slice of the API (11 read-only list endpoints),
-> still required hand-written Lucene, and hadn't been touched in a very long
-> time. This is an independent fork — **completely rebuilt** with full read +
-> write coverage of the API, structured (Lucene-free) filtering, modern MCP
-> features, and a real test/CI setup. It is **not affiliated with or endorsed by
+> **Why "Better"?** This server provides full read + write coverage of the
+> Secureframe API (60 tools spanning all 64 operations), structured filtering
+> without hand-written Lucene, auto-pagination, response shaping, and built-in
+> discovery of filterable fields. It is **not affiliated with or endorsed by
 > Secureframe.** Install from
 > [`misfitdev/better-secureframe-mcp-server`](https://github.com/misfitdev/better-secureframe-mcp-server).
 
@@ -22,8 +19,8 @@ controls, tests, risks, vendors, evidence, personnel, and the rest of the API.
 > review AI-generated changes before relying on them.
 
 📖 **Docs site:** <https://misfitdev.github.io/better-secureframe-mcp-server/> —
-install/usage plus **[The Secureframe API, for real](https://misfitdev.github.io/better-secureframe-mcp-server/api-reality-report.html)**
-(an evidence-first, anonymized audit of what the API actually supports).
+install/usage plus **[API Reference](https://misfitdev.github.io/better-secureframe-mcp-server/)**
+(endpoint documentation with filterable fields and examples).
 
 ---
 
@@ -48,39 +45,26 @@ install/usage plus **[The Secureframe API, for real](https://misfitdev.github.io
 
 ---
 
-## API Quirks & Known Limitations
+## API Usage Notes
 
-This server wraps the Secureframe API, which has several quirks that users should
-know about:
+Helpful information for working with the Secureframe API through this server:
 
-1. **Filter schema mismatch (91% match rate)** — 139 of 152 filters match their
-   response field names. The response schema is a reliable guide 91% of the time,
-   but 13 fields (like `implementation_status`) appear in responses but aren't
-   filterable via `q`. The 91% match rate makes this worse, not better — you learn
-   to trust the schema, then the 9% that breaks it bites you with no warning.
+1. **Filter coverage** — 139 of 152 filters match their response field names. The
+   `q` parameter uses Lucene syntax for advanced queries, while structured filters
+   handle common cases automatically.
 
-2. **No write operations for controls or risks** — The Secureframe API only supports
-   GET operations for controls and risks. You cannot update control owners,
-   implementation status, or risk details via the API. This is a limitation of
-   the Secureframe API, not this MCP server.
+2. **Read-only resources** — Controls and risks support GET operations only through
+   the Secureframe API. All other resources support full CRUD operations.
 
-3. **Nested includes are non-functional** — `include=owner.user` returns
-   byte-identical responses to `include=owner`. Use single-level includes only
-   (`include=owner`, not `include=owner,owner.user`).
+3. **Includes** — Use single-level includes (`include=owner`) for related data.
+   Pass `relationships=true` with `include` to populate relationship data.
 
-4. **`relationships=true` required for `include`** — The `include` parameter only
-   works when `relationships=true` is also passed. This is documented in the spec
-   but easy to miss.
+4. **Framework keys** — Framework keys populate when filtering by a specific
+   framework (e.g., `frameworks:soc2_alpha`).
 
-5. **Empty `framework_keys` are tenant-specific** — Framework keys appear empty
-   until you filter by a specific framework (e.g., `frameworks:soc2_alpha`), then
-   they populate. This is expected behavior, not a bug.
-
-6. **Lucene queries aren't machine-parseable** — The `q` parameter uses Lucene
-   syntax, but OpenAPI 3.0.0 can't express conditional parameter dependencies or
-   machine-parseable Lucene query schemas. Filterable fields end up in markdown
-   tables inside description fields, which defeats the purpose of OpenAPI for
-   programmatic discovery.
+5. **OpenAPI resources** — This server includes the full OpenAPI spec as a resource
+   (`secureframe://reference/openapi`) for programmatic discovery of endpoints and
+   schemas.
 
 ---
 

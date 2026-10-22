@@ -229,18 +229,23 @@ async def test_default_rest_auth_reuses_cached_token_and_infers_region(monkeypat
 
 
 @pytest.mark.asyncio
-async def test_api_keys_remain_supported_without_cache_read(monkeypatch):
-    monkeypatch.setenv("SECUREFRAME_API_KEY", "key")
-    monkeypatch.setenv("SECUREFRAME_API_SECRET", "secret")
+@pytest.mark.parametrize("old_mode", ["api_key", "mcp_token", "auto"])
+async def test_removed_credentials_and_modes_cannot_override_oauth(
+    monkeypatch, old_mode
+):
+    monkeypatch.setenv("SECUREFRAME_REST_AUTH", old_mode)
+    monkeypatch.setenv("SECUREFRAME_API_KEY", "obsolete-key")
+    monkeypatch.setenv("SECUREFRAME_API_SECRET", "obsolete-secret")
+    monkeypatch.setenv("SECUREFRAME_MCP_ACCESS_TOKEN", "obsolete-token")
+    cache(monkeypatch, entry())
     async with rest_auth.rest_client() as client:
-        assert client.headers["authorization"] == "key secret"
+        assert client.headers["authorization"] == "Bearer synthetic-access-token"
 
 
-@pytest.mark.asyncio
-async def test_explicit_claude_mode_does_not_fall_back_to_api_keys(monkeypatch):
-    monkeypatch.setenv("SECUREFRAME_REST_AUTH", "claude_code")
-    monkeypatch.setenv("SECUREFRAME_API_KEY", "key")
-    monkeypatch.setenv("SECUREFRAME_API_SECRET", "secret")
+def test_missing_oauth_login_cannot_fall_back_to_removed_credentials(monkeypatch):
+    monkeypatch.setenv("SECUREFRAME_API_KEY", "obsolete-key")
+    monkeypatch.setenv("SECUREFRAME_API_SECRET", "obsolete-secret")
+    monkeypatch.setenv("SECUREFRAME_MCP_ACCESS_TOKEN", "obsolete-token")
     cache(monkeypatch)
     with pytest.raises(ValueError, match="No matching"):
         rest_auth.rest_client()
@@ -262,7 +267,6 @@ def test_cli_can_select_claude_and_region_without_env_file(monkeypatch, capsys):
     )
 
     async def fake_probe():
-        assert rest_auth._auth_mode() == "claude_code"
         assert rest_auth.os.environ["SECUREFRAME_CLAUDE_SERVER_NAME"] == "secureframe"
         assert (
             rest_auth.os.environ["SECUREFRAME_API_URL"]

@@ -1,122 +1,49 @@
 ---
-title: A Better Secureframe MCP
+title: Secureframe Local Upload Helpers
 kicker: Get started
-dek: "A complete, modern MCP server for the Secureframe API: full read and write coverage, structured filtering, and no hand-written Lucene."
+dek: "Supplement the official Secureframe MCP with local-file uploads using its existing OAuth sign-in."
 ---
 
-A complete [Model Context Protocol](https://modelcontextprotocol.io/) server for
-the Secureframe compliance platform: full read and write coverage of the API,
-structured (Lucene-free) filtering, write safety, and a real test and CI setup.
-It is an independent rebuild of the official, long-stale
-[`secureframe/secureframe-mcp-server`](https://github.com/secureframe/secureframe-mcp-server)
-(which exposed only a small read-only slice), and is not affiliated with or
-endorsed by Secureframe.
+Use the official [Secureframe MCP](https://mcp.secureframe.com/mcp_docs) for normal reads and writes. This independent supplemental server adds local-file evidence helpers and realistic multipart questionnaire uploads.
 
-**Heads up:** this server can read and write your compliance data. Destructive
-operations require `confirm=true`, and the whole server can be locked read-only
-with `SECUREFRAME_READ_ONLY=true`. Always review AI-generated changes.
+Authentication is **OAuth only**: REST calls reuse Claude Code's existing Secureframe sign-in from macOS Keychain. No API keys, copied tokens, separate login, or credentials file are needed.
 
-## Install
+## Install and check OAuth
 
-You need Secureframe API credentials (key + secret). The fastest path needs no
-clone: [`uv`](https://docs.astral.sh/uv/) fetches, builds, and runs the server
-straight from GitHub.
+On the Mac where Claude Code is already signed in:
 
-```bash
-uvx --from git+https://github.com/misfitdev/better-secureframe-mcp-server.git better-secureframe-mcp
+```sh
+uv tool install --force --refresh 'git+https://github.com/misfitdev/better-secureframe-mcp-server.git@codex/supplemental-local-uploads'
+secureframe-probe-rest-auth
 ```
 
-Prefer a local checkout? Clone and install the `better-secureframe-mcp` console
-script instead:
+The probe performs one read-only request and reports its status without printing credentials or personnel data. If multiple sign-ins exist, add `--server-name NAME` and optionally `--region us` or `--region uk`.
 
-```bash
-git clone https://github.com/misfitdev/better-secureframe-mcp-server.git
-cd better-secureframe-mcp-server
-python -m venv .venv && source .venv/bin/activate
-pip install -e .
+Add the helper to your MCP client using its absolute executable path:
+
+```sh
+claude mcp add secureframe-local-uploads -- /absolute/path/better-secureframe-mcp
 ```
 
-## Connect a client
+Keep the official MCP connected. This helper runs over stdio on the same Mac/account.
 
-Add this to your client's MCP config. Claude Desktop
-(`claude_desktop_config.json`), Cursor (`~/.cursor/mcp.json`), VS Code, and most
-clients use this `mcpServers` shape:
+## Local evidence files
 
-```json
-{
-  "mcpServers": {
-    "better-secureframe": {
-      "command": "uvx",
-      "args": [
-        "--from",
-        "git+https://github.com/misfitdev/better-secureframe-mcp-server.git",
-        "better-secureframe-mcp"
-      ],
-      "env": {
-        "SECUREFRAME_API_KEY": "your_key",
-        "SECUREFRAME_API_SECRET": "your_secret"
-      }
-    }
-  }
-}
-```
+1. Call local `prepare_local_file_upload(file_path)` to compute metadata.
+2. Call official `create_file_upload` to stage it through the existing OAuth session.
+3. Call local `put_local_file_upload` with the returned signed URL/headers and prepared checksum/size.
+4. Call official `create_test_evidence`, `create_user_evidence`, or `update_trust_center_request` to attach the upload ID.
 
-Claude Code, one command:
+The upstream staging limit is 32 MB. URLs expire in 15 minutes; upload IDs expire in one hour and are single-use. User evidence requires `document_type`.
 
-```bash
-claude mcp add better-secureframe \
-  -e SECUREFRAME_API_KEY=your_key -e SECUREFRAME_API_SECRET=your_secret \
-  -- uvx --from git+https://github.com/misfitdev/better-secureframe-mcp-server.git better-secureframe-mcp
-```
+## Questionnaire files
 
-Codex (`~/.codex/config.toml`) and Gemini (`~/.gemini/settings.json`) take the
-same `command` / `args` / `env` in their own format. Installed from a clone
-instead of `uvx`? Set `command` to the absolute path of
-`.venv/bin/better-secureframe-mcp` and drop the `args`.
+`upload_security_questionnaire_file(file_path, owner_id, ...)` streams multipart bytes to the REST endpoint using the cached OAuth sign-in. It avoids the official MCP's small inline-base64 limit; upstream file limits still apply. Live REST read acceptance has been confirmed on a signed-in system; live questionnaire writes remain unverified.
 
-### Environment variables
+## Settings
 
-| Variable | Purpose |
-|---|---|
-| `SECUREFRAME_API_KEY` / `SECUREFRAME_API_SECRET` | credentials (required) |
-| `SECUREFRAME_API_URL` | region endpoint (US default; UK `api-uk`) |
-| `SECUREFRAME_ENV_FILE` | load creds from an env file outside the repo |
-| `SECUREFRAME_READ_ONLY` | `true` disables all writes |
-| `SECUREFRAME_TOOL_TAGS` / `SECUREFRAME_EXCLUDE_TAGS` | shrink the exposed tool set by tag |
+`SECUREFRAME_READ_ONLY=true` blocks uploads. Optional tool-tag filters control exposed tools. Set `SECUREFRAME_MCP_MODE=legacy` to retain the earlier 60-tool surface, which now also uses OAuth only.
 
-## Filtering without Lucene
+The helper reads but never refreshes or modifies Claude Code's cache. When a token expires, use the official MCP in Claude Code to refresh/authenticate and retry.
 
-You talk to the assistant in plain English ("show me failing SOC 2 controls"); it
-maps that to a typed tool call (`list_controls(health_status="unhealthy",
-framework="soc2_alpha")`); the server compiles the Lucene query the API requires.
-You don't need to know the field names. If you want the human-readable list of
-which fields actually filter on each resource (and their allowed values), see
-[PARAMETER_REFERENCE.md](https://github.com/misfitdev/better-secureframe-mcp-server/blob/main/PARAMETER_REFERENCE.md).
-
-## What you get
-
-- **Full API coverage:** 60 tools across all 64 API operations (lists, get-by-id
-  detail, and writes), not just list endpoints.
-- **Auto-pagination and response trimming** so you can actually retrieve
-  everything without fighting the 100-per-page cap.
-- **Write safety:** read/write annotations, `confirm=true` gates on destructive
-  ops, and a global `SECUREFRAME_READ_ONLY` switch.
-- **Discovery resources and workflow prompts** so the assistant finds filterable
-  fields and runs common compliance flows on its own.
-
-The full tool catalog and the always-current reference live in the
-[README](https://github.com/misfitdev/better-secureframe-mcp-server#readme).
-
-## Provenance
-
-Verify a release artifact's SLSA build provenance:
-
-```bash
-slsa-verifier verify-artifact <file> \
-  --provenance-path provenance.intoto.jsonl \
-  --source-uri github.com/misfitdev/better-secureframe-mcp-server
-```
-
-## Source
-
-[`github.com/misfitdev/better-secureframe-mcp-server`](https://github.com/misfitdev/better-secureframe-mcp-server)
+See the [full setup and usage guide](https://github.com/misfitdev/better-secureframe-mcp-server/tree/codex/supplemental-local-uploads#readme) and [source](https://github.com/misfitdev/better-secureframe-mcp-server).

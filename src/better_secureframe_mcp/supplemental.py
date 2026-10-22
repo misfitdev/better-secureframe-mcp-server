@@ -51,9 +51,8 @@ User evidence requires document_type. The same flow supports signed Trust Center
 via the official update_trust_center_request. Upload URLs expire in 15 minutes;
 upload ids expire in 1 hour and are single-use. Evidence is limited to 32 MB.
 For realistic questionnaire files, upload_security_questionnaire_file uses the REST
-multipart endpoint. API key/secret is the documented auth method; without API keys, the helper
-reads Claude Code's macOS Secureframe token. REST bearer auth is experimental;
-run secureframe-probe-rest-auth --claude-code on the signed-in machine first. Do not send file
+multipart endpoint using Claude Code's existing macOS Secureframe OAuth sign-in.
+Run secureframe-probe-rest-auth on the signed-in machine to check read access. Do not send file
 bytes or credentials in chat. Evidence helpers need no credentials or separate login.
 """,
 )
@@ -181,8 +180,8 @@ async def upload_security_questionnaire_file(
 ) -> dict[str, Any]:
     """Upload a realistic questionnaire file through REST, avoiding MCP's inline size limit.
 
-    Uses API keys when configured, otherwise Claude Code's cached token on macOS.
-    REST bearer auth is experimental; run secureframe-probe-rest-auth --claude-code first.
+    Reuses Claude Code's Secureframe OAuth sign-in on macOS.
+    Run secureframe-probe-rest-auth on the signed-in machine to check read access.
     Uses the API's file limits, not the evidence staging endpoint's 32 MB limit.
     No automatic retry: retrying a successful but interrupted creation can duplicate it.
     """

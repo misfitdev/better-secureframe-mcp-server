@@ -33,13 +33,13 @@ async def _apply_tool_filter(config: Config, application: FastMCP = mcp) -> int:
 
 def main() -> None:
     # SECUREFRAME_ENV_FILE points at an env file outside the repo (e.g.
-    # /tmp/secureframe.env) so secrets stay out of the project and out of any
-    # committed MCP config. Falls back to the default ./.env search.
+    # /tmp/secureframe.env) for optional settings. OAuth credentials are read
+    # from Claude Code, never from this file. Falls back to ./.env search.
     load_dotenv(os.getenv("SECUREFRAME_ENV_FILE") or None)
     mode = os.getenv("SECUREFRAME_MCP_MODE", "supplemental").strip().lower()
     if mode not in {"supplemental", "legacy"}:
         raise ValueError("SECUREFRAME_MCP_MODE must be supplemental or legacy.")
-    config = load_config(require_credentials=mode == "legacy")
+    config = load_config()
     if mode == "supplemental":
         from .supplemental import mcp as application
 

@@ -29,8 +29,6 @@ def clean_auth(monkeypatch):
         "SECUREFRAME_CLAUDE_SERVER_NAME",
     ):
         monkeypatch.delenv(name, raising=False)
-    # These existing tests exercise explicit API-key/manual-token modes only.
-    monkeypatch.setenv("SECUREFRAME_REST_AUTH", "api_key")
 
 
 @pytest.fixture
@@ -185,17 +183,21 @@ async def test_read_only_blocks_both_uploads_without_credentials(evidence, monke
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("mode", ["api_key", "mcp_token"])
 async def test_realistic_questionnaire_multipart_auth_and_no_retry(
-    tmp_path, monkeypatch, mode
+    tmp_path, monkeypatch
 ):
     path = tmp_path / "questionnaire.xlsx"
     content = b"binary questionnaire\x00\xff" * 100_000
     path.write_bytes(content)
-    monkeypatch.setenv("SECUREFRAME_REST_AUTH", mode)
-    monkeypatch.setenv("SECUREFRAME_API_KEY", "key")
-    monkeypatch.setenv("SECUREFRAME_API_SECRET", "secret")
-    monkeypatch.setenv("SECUREFRAME_MCP_ACCESS_TOKEN", "access-token")
+    monkeypatch.setattr(
+        rest_auth,
+        "credential",
+        lambda: rest_auth.claude_auth.ClaudeCredential(
+            "cached-oauth-token",
+            "https://api.secureframe.com",
+            "secureframe",
+        ),
+    )
     original = rest_auth.rest_client
     requests = []
 
@@ -209,9 +211,7 @@ async def test_realistic_questionnaire_multipart_auth_and_no_retry(
                 "questionnaire_template": "sig",
             }
         )
-        assert request.headers["authorization"] == (
-            "Bearer access-token" if mode == "mcp_token" else "key secret"
-        )
+        assert request.headers["authorization"] == "Bearer cached-oauth-token"
         body = await request.aread()
         assert content in body
         assert b'filename="questionnaire.xlsx"' in body
@@ -235,15 +235,18 @@ async def test_realistic_questionnaire_multipart_auth_and_no_retry(
 
 
 @pytest.mark.asyncio
-async def test_missing_questionnaire_credentials_are_clear(evidence):
-    with pytest.raises(ToolError, match="SECUREFRAME_API_KEY"):
+async def test_missing_questionnaire_oauth_login_is_clear(evidence, monkeypatch):
+    def no_sign_in(**kwargs):
+        raise ValueError("No matching Secureframe access token found in Claude Code.")
+
+    monkeypatch.setattr(rest_auth.claude_auth, "cached_credential", no_sign_in)
+    with pytest.raises(ToolError, match="No matching Secureframe"):
         await supplemental.upload_security_questionnaire_file(str(evidence), "owner")
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("status", [200, 401, 403])
 async def test_auth_probe_does_not_expose_user_data_or_token(monkeypatch, status):
-    monkeypatch.setenv("SECUREFRAME_REST_AUTH", "mcp_token")
 
     async def check(request):
         assert request.method == "GET"
@@ -265,11 +268,7 @@ async def test_auth_probe_does_not_expose_user_data_or_token(monkeypatch, status
     assert "private-user" not in str(result)
 
 
-def test_token_auth_requires_explicit_opt_in_and_official_origin(monkeypatch):
-    monkeypatch.setenv("SECUREFRAME_MCP_ACCESS_TOKEN", "token")
-    with pytest.raises(ValueError, match="SECUREFRAME_API_KEY"):
-        rest_auth.rest_client()
-    monkeypatch.setenv("SECUREFRAME_REST_AUTH", "mcp_token")
+def test_rest_auth_rejects_non_secureframe_origin(monkeypatch):
     monkeypatch.setenv("SECUREFRAME_API_URL", "https://other.example")
     with pytest.raises(ValueError, match="Secureframe US or UK"):
         rest_auth.rest_client()
@@ -303,11 +302,13 @@ def test_default_entrypoint_needs_no_api_credentials(monkeypatch):
     monkeypatch.setattr(supplemental.mcp, "run", run)
     server.main()
     run.assert_called_once_with()
-    assert load_config(require_credentials=False).api_key == ""
+    assert load_config().base_url == "https://api.secureframe.com"
 
 
-def test_legacy_mode_still_requires_credentials(monkeypatch):
+def test_legacy_mode_starts_without_manual_credentials(monkeypatch):
     monkeypatch.setattr(server, "load_dotenv", lambda *a: None)
     monkeypatch.setenv("SECUREFRAME_MCP_MODE", "legacy")
-    with pytest.raises(ValueError, match="SECUREFRAME_API_KEY"):
-        server.main()
+    run = Mock()
+    monkeypatch.setattr(server.mcp, "run", run)
+    server.main()
+    run.assert_called_once_with()

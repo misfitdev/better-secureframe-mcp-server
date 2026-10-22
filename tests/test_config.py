@@ -3,8 +3,6 @@ from better_secureframe_mcp.config import Config
 
 def _cfg(include=(), exclude=()):
     return Config(
-        api_key="k",
-        api_secret="s",
         base_url="https://api.secureframe.com",
         read_only=False,
         transport="stdio",

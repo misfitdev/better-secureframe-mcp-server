@@ -7,7 +7,6 @@ import base64
 import hashlib
 import ipaddress
 import mimetypes
-import os
 import socket
 from datetime import date
 from pathlib import Path
@@ -20,7 +19,6 @@ from fastmcp.exceptions import ToolError
 from pydantic import Field
 
 from . import client, rest_auth, shaping
-from .config import _truthy
 from .tools import _common as c
 
 MAX_EVIDENCE_BYTES = 32 * 1024 * 1024
@@ -52,15 +50,9 @@ via the official update_trust_center_request. Upload URLs expire in 15 minutes;
 upload ids expire in 1 hour and are single-use. Evidence is limited to 32 MB.
 For realistic questionnaire files, upload_security_questionnaire_file uses the REST
 multipart endpoint using Claude Code's existing macOS Secureframe OAuth sign-in.
-Run secureframe-probe-rest-auth on the signed-in machine to check read access. Do not send file
-bytes or credentials in chat. Evidence helpers need no credentials or separate login.
+Do not send file bytes or credentials in chat.
 """,
 )
-
-
-def _ensure_writable() -> None:
-    if _truthy(os.getenv("SECUREFRAME_READ_ONLY")):
-        raise ToolError("Uploads are disabled by SECUREFRAME_READ_ONLY.")
 
 
 def _read_evidence(file_path: str) -> bytes:
@@ -144,7 +136,6 @@ async def put_local_file_upload(
     Checks that the file still matches the staged metadata. Does not attach evidence;
     after success call the official evidence tool with its upload_id.
     """
-    _ensure_writable()
     content = await asyncio.to_thread(_read_evidence, file_path)
     if len(content) != byte_size or _checksum(content) != checksum:
         raise ToolError("File changed since staging. Prepare and stage a new upload.")
@@ -181,11 +172,9 @@ async def upload_security_questionnaire_file(
     """Upload a realistic questionnaire file through REST, avoiding MCP's inline size limit.
 
     Reuses Claude Code's Secureframe OAuth sign-in on macOS.
-    Run secureframe-probe-rest-auth on the signed-in machine to check read access.
     Uses the API's file limits, not the evidence staging endpoint's 32 MB limit.
     No automatic retry: retrying a successful but interrupted creation can duplicate it.
     """
-    _ensure_writable()
     try:
         rest = await asyncio.to_thread(rest_auth.rest_client)
     except ValueError as exc:

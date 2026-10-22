@@ -165,8 +165,7 @@ def cached_credential(
     if len(matches) > 1:
         raise ClaudeAuthError(
             "Multiple Secureframe sign-ins found in Claude Code. Select one with "
-            "--server-name NAME (or SECUREFRAME_CLAUDE_SERVER_NAME); use --region "
-            "if they differ by region."
+            "SECUREFRAME_CLAUDE_SERVER_NAME and, if needed, SECUREFRAME_API_URL."
         )
     if candidates:
         return candidates.pop()

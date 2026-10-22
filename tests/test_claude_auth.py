@@ -249,31 +249,3 @@ def test_missing_oauth_login_cannot_fall_back_to_removed_credentials(monkeypatch
     cache(monkeypatch)
     with pytest.raises(ValueError, match="No matching"):
         rest_auth.rest_client()
-
-
-def test_cli_can_select_claude_and_region_without_env_file(monkeypatch, capsys):
-    monkeypatch.setattr(rest_auth, "load_dotenv", lambda *a: None)
-    monkeypatch.setattr(
-        rest_auth.sys,
-        "argv",
-        [
-            "probe",
-            "--claude-code",
-            "--server-name",
-            "secureframe",
-            "--region",
-            "uk",
-        ],
-    )
-
-    async def fake_probe():
-        assert rest_auth.os.environ["SECUREFRAME_CLAUDE_SERVER_NAME"] == "secureframe"
-        assert (
-            rest_auth.os.environ["SECUREFRAME_API_URL"]
-            == "https://api-uk.secureframe.com"
-        )
-        return {"accepted": True, "status_code": 200}
-
-    monkeypatch.setattr(rest_auth, "probe", fake_probe)
-    rest_auth.main()
-    assert json.loads(capsys.readouterr().out)["status_code"] == 200

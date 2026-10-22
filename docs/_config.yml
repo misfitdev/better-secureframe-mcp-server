@@ -4,18 +4,6 @@ url: https://misfitdev.github.io
 baseurl: /better-secureframe-mcp-server
 repository_url: https://github.com/misfitdev/better-secureframe-mcp-server
 install_ref: codex/supplemental-local-uploads
-navigation:
-  - title: Overview
-    url: /
-  - title: Install
-    url: /install/
-  - title: Uploads
-    url: /uploads/
-  - title: OAuth
-    url: /oauth/
-  - title: Reference
-    url: /reference/
-
 # Custom layout (no theme). All pages default to the `default` layout.
 defaults:
   - scope:

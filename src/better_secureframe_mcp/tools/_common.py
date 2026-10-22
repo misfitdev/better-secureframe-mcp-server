@@ -83,10 +83,6 @@ async def write(
     destructive: bool = False,
     confirm: bool = True,
 ) -> dict[str, Any]:
-    try:
-        client.ensure_writable()
-    except client.WriteNotAllowedError as exc:
-        return {"error": str(exc)}
     if destructive and not confirm:
         return {
             "error": "This is a destructive operation. Re-run with confirm=true to proceed.",
@@ -103,9 +99,5 @@ async def upload(
     *,
     params: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    try:
-        client.ensure_writable()
-    except client.WriteNotAllowedError as exc:
-        return {"error": str(exc)}
     payload = await client.upload(method, endpoint, file_path, params=params)
     return shaping.shape(payload)

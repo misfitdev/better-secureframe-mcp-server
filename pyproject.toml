@@ -38,7 +38,6 @@ dev = [
 
 [project.scripts]
 better-secureframe-mcp = "better_secureframe_mcp.server:main"
-secureframe-probe-rest-auth = "better_secureframe_mcp.rest_auth:main"
 
 [project.urls]
 Homepage = "https://github.com/misfitdev/better-secureframe-mcp-server"

@@ -1,9 +1,8 @@
 import asyncio
 
-from better_secureframe_mcp.app import mcp
-
 # Importing the server registers all tools, resources, and prompts.
 import better_secureframe_mcp.server  # noqa: F401
+from better_secureframe_mcp.app import mcp
 
 
 def _by_name(items):

@@ -41,15 +41,13 @@ class Config:
         """
         if self.exclude_tags & tags:
             return False
-        if self.include_tags and not (self.include_tags & tags):
-            return False
-        return True
+        return not self.include_tags or bool(self.include_tags & tags)
 
 
-def load_config() -> Config:
+def load_config(*, require_credentials: bool = True) -> Config:
     api_key = os.getenv("SECUREFRAME_API_KEY", "").strip()
     api_secret = os.getenv("SECUREFRAME_API_SECRET", "").strip()
-    if not api_key or not api_secret:
+    if require_credentials and (not api_key or not api_secret):
         raise ValueError(
             "SECUREFRAME_API_KEY and SECUREFRAME_API_SECRET must be set. "
             "Create an API key in Secureframe under Company settings -> API keys."

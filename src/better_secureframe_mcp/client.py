@@ -118,6 +118,7 @@ async def upload(
     file_path: str,
     *,
     params: dict[str, Any] | None = None,
+    http_client: httpx.AsyncClient | None = None,
 ) -> dict[str, Any]:
     """Upload a local file as multipart/form-data (field name ``file``)."""
     import os
@@ -125,14 +126,19 @@ async def upload(
     if not os.path.isfile(file_path):
         return {"error": f"File not found: {file_path}"}
 
-    client = get_client()
+    client = http_client if http_client is not None else get_client()
     clean_params = {k: v for k, v in (params or {}).items() if v is not None}
     try:
-        with open(file_path, "rb") as fh:
-            files = {"file": (os.path.basename(file_path), fh.read())}
-        response = await client.request(
-            method, endpoint, params=clean_params, files=files
-        )
+        fh = await asyncio.to_thread(open, file_path, "rb")
+        try:
+            files = {"file": (os.path.basename(file_path), fh)}
+            response = await client.request(
+                method, endpoint, params=clean_params, files=files
+            )
+        finally:
+            await asyncio.to_thread(fh.close)
+    except OSError as exc:
+        return {"error": f"Could not read upload file: {exc.strerror}"}
     except httpx.RequestError as exc:
         return {"error": f"Request failed: {exc}"}
 

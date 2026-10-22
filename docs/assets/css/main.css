@@ -10,7 +10,7 @@
   --paper-3:      oklch(0.928 0.010 83);   /* deeper edge / table head wash */
   --ink:          oklch(0.255 0.012 70);   /* primary text */
   --ink-2:        oklch(0.430 0.013 68);   /* secondary text */
-  --ink-3:        oklch(0.575 0.011 66);   /* meta / faint */
+  --ink-3:        oklch(0.500 0.011 66);   /* meta / faint */
   --rule:         oklch(0.870 0.008 80);   /* hairline */
   --rule-2:       oklch(0.790 0.010 78);   /* stronger hairline */
 
@@ -25,8 +25,8 @@
   --font: "Spline Sans Mono", ui-monospace, "SF Mono", "SFMono-Regular", Menlo,
     Consolas, monospace;
 
-  --measure: 84ch;   /* the centered reading column */
-  --column: 84ch;    /* kept equal so tables stay within the column */
+  --measure: 76ch;   /* the centered reading column */
+  --column: 76ch;    /* kept equal so tables stay within the column */
   --rhythm: 1.6;
 
   --s-1: 0.25rem;
@@ -120,7 +120,7 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-
   );
 }
 .nav { display: flex; flex-wrap: wrap; gap: clamp(0.75rem, 2vw, 1.6rem); font-size: 0.85rem; }
-.nav a { color: var(--ink-2); text-decoration: none; padding-block: 0.2rem; }
+.nav a { color: var(--ink-2); text-decoration: none; padding-block: 0.4rem; min-height: 2.75rem; display: inline-flex; align-items: center; }
 .nav a:hover { color: var(--ink); }
 .nav a[aria-current="page"] {
   color: var(--ink);
@@ -135,8 +135,8 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-
   margin-inline: auto;
   padding: clamp(1.75rem, 4vw, 3.5rem) clamp(1rem, 4vw, 2.5rem) var(--s-8);
 }
-.rail { display: none; }
-body.has-toc .rail { display: block; }
+.rail { grid-row: 1; display: none; }
+body.has-toc .rail { grid-row: 1; display: block; }
 .prose { max-width: var(--measure); margin-inline: auto; }
 /* Everything sits within the reading column and wraps rather than scrolling.
    Tables size to their own content: narrow tables stay compact, wide ones wrap
@@ -144,7 +144,7 @@ body.has-toc .rail { display: block; }
 .prose > * { max-width: var(--measure); }
 .prose > .table-wrap { width: fit-content; max-width: 100%; }
 
-@media (min-width: 64rem) {
+@media (min-width: 80rem) {
   /* A centered reading column. The contents rail floats in the right margin
      (equal 1fr gutters both sides) so it never pushes the column off-center and
      the section rules stay balanced in the middle. */
@@ -154,8 +154,12 @@ body.has-toc .rail { display: block; }
     column-gap: clamp(1.75rem, 3.5vw, 3.5rem);
     align-items: start;
   }
-  body.has-toc .prose { grid-column: 2; margin-inline: 0; max-width: none; }
-  .rail {
+  body.has-toc .prose { grid-column: 2;
+    grid-row: 1; margin-inline: 0; max-width: none; }
+  .rail { grid-row: 1;
+    min-width: 0;
+    width: 100%;
+    overflow-wrap: anywhere;
     grid-column: 3;
     justify-self: start;
     max-width: 14rem;
@@ -167,7 +171,7 @@ body.has-toc .rail { display: block; }
 }
 
 /* ---- contents rail --------------------------------------------------- */
-@media (max-width: 63.99rem) { .rail { margin-bottom: var(--s-5); } }
+@media (max-width: 79.99rem) { .rail { grid-row: 1; margin-bottom: var(--s-5); } }
 
 .toc-d summary {
   cursor: pointer;
@@ -192,7 +196,7 @@ body.has-toc .rail { display: block; }
 .toc-d a:hover { color: var(--ink); }
 .toc-d a.is-current { color: var(--accent); font-weight: 600; }
 .toc-d a.is-current::before { content: "▍ "; color: var(--accent); }
-@media (min-width: 64rem) {
+@media (min-width: 80rem) {
   .toc-d > summary { display: none; }
   .toc-d > ol { display: block; }
 }

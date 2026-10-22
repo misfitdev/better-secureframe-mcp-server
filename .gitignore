@@ -181,6 +181,7 @@ docs/Gemfile.lock
 docs/_site/
 docs/.jekyll-cache/
 docs/.jekyll-metadata
+.bundle/
 .impeccable/
 
 # mise / lefthook local overrides

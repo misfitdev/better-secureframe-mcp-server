@@ -4,7 +4,6 @@ from better_secureframe_mcp.config import Config
 def _cfg(include=(), exclude=()):
     return Config(
         base_url="https://api.secureframe.com",
-        read_only=False,
         transport="stdio",
         host="127.0.0.1",
         port=8000,

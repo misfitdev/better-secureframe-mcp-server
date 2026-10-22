@@ -24,8 +24,7 @@ caps each page at 100 records). Use `fields` to project only the attributes you
 need and keep responses small.
 
 Writes: tools that create/update/archive/delete data are annotated accordingly.
-Destructive operations require confirm=true. The whole server can be forced
-read-only by setting SECUREFRAME_READ_ONLY=true.
+Destructive operations require confirm=true.
 
 Tool categories (search/discover by these keywords when using deferred loading):
 controls, tests, users, user_accounts, devices, risks, frameworks,

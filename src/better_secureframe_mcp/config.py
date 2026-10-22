@@ -6,10 +6,6 @@ import os
 from dataclasses import dataclass
 
 
-def _truthy(value: str | None) -> bool:
-    return (value or "").strip().lower() in {"1", "true", "yes", "on"}
-
-
 def _tagset(value: str | None) -> frozenset[str]:
     return frozenset(t.strip() for t in (value or "").split(",") if t.strip())
 
@@ -17,7 +13,6 @@ def _tagset(value: str | None) -> frozenset[str]:
 @dataclass(frozen=True)
 class Config:
     base_url: str
-    read_only: bool
     transport: str
     host: str
     port: int
@@ -28,9 +23,7 @@ class Config:
         """Whether a tool with these tags should be registered.
 
         Lets a deployment shrink the exposed tool surface (and the tokens its
-        definitions cost) without code changes. Example: SECUREFRAME_EXCLUDE_TAGS=write
-        for a read-only server, or SECUREFRAME_TOOL_TAGS=controls,tests to expose
-        only those resources.
+        definitions cost) without code changes. Example: SECUREFRAME_TOOL_TAGS=controls,tests exposes only those resources.
         """
         if self.exclude_tags & tags:
             return False
@@ -45,7 +38,6 @@ def load_config() -> Config:
 
     return Config(
         base_url=base_url,
-        read_only=_truthy(os.getenv("SECUREFRAME_READ_ONLY")),
         transport=os.getenv("SECUREFRAME_MCP_TRANSPORT", "stdio").strip().lower(),
         host=os.getenv("SECUREFRAME_MCP_HOST", "127.0.0.1").strip(),
         port=int(os.getenv("SECUREFRAME_MCP_PORT", "8000")),

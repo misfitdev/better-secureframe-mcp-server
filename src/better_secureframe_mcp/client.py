@@ -13,25 +13,12 @@ from typing import Any
 import httpx
 
 from . import rest_auth
-from .config import Config, load_config
 
 _PER_PAGE_MAX = 100  # Secureframe hard-caps page size at 100 regardless of request.
 _MAX_RETRIES = 3
 _BACKOFF_BASE = 0.5
 
-_config: Config | None = None
 _client: httpx.AsyncClient | None = None
-
-
-class WriteNotAllowedError(RuntimeError):
-    """Raised when a write is attempted while SECUREFRAME_READ_ONLY is set."""
-
-
-def get_config() -> Config:
-    global _config
-    if _config is None:
-        _config = load_config()
-    return _config
 
 
 def get_client() -> httpx.AsyncClient:
@@ -46,14 +33,6 @@ def get_client() -> httpx.AsyncClient:
             trust_env=False,
         )
     return _client
-
-
-def ensure_writable() -> None:
-    if get_config().read_only:
-        raise WriteNotAllowedError(
-            "This server is running in read-only mode (SECUREFRAME_READ_ONLY is set). "
-            "Unset it to enable write operations."
-        )
 
 
 async def request(

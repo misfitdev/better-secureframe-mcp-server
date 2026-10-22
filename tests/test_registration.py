@@ -19,7 +19,7 @@ def test_tools_registered():
     assert "archive_vendor" in tools
 
 
-def test_read_only_annotations():
+def test_tool_annotations():
     tools = _by_name(asyncio.run(mcp.list_tools()))
     assert tools["list_controls"].annotations.readOnlyHint is True
     assert tools["delete_comment"].annotations.destructiveHint is True

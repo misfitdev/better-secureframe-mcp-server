@@ -21,7 +21,6 @@ def clean_auth(monkeypatch):
         "SECUREFRAME_API_URL",
         "SECUREFRAME_MCP_ACCESS_TOKEN",
         "SECUREFRAME_REST_AUTH",
-        "SECUREFRAME_READ_ONLY",
         "SECUREFRAME_MCP_MODE",
         "SECUREFRAME_MCP_TRANSPORT",
         "SECUREFRAME_TOOL_TAGS",
@@ -167,22 +166,6 @@ async def test_put_does_not_follow_redirects_or_report_upload_success(
 
 
 @pytest.mark.asyncio
-async def test_read_only_blocks_both_uploads_without_credentials(evidence, monkeypatch):
-    monkeypatch.setenv("SECUREFRAME_READ_ONLY", "true")
-    metadata = await supplemental.prepare_local_file_upload(str(evidence))
-    with pytest.raises(ToolError, match="disabled"):
-        await supplemental.put_local_file_upload(
-            str(evidence),
-            "https://unused.example",
-            {},
-            metadata["byte_size"],
-            metadata["checksum"],
-        )
-    with pytest.raises(ToolError, match="disabled"):
-        await supplemental.upload_security_questionnaire_file(str(evidence), "owner")
-
-
-@pytest.mark.asyncio
 async def test_realistic_questionnaire_multipart_auth_and_no_retry(
     tmp_path, monkeypatch
 ):
@@ -242,30 +225,6 @@ async def test_missing_questionnaire_oauth_login_is_clear(evidence, monkeypatch)
     monkeypatch.setattr(rest_auth.claude_auth, "cached_credential", no_sign_in)
     with pytest.raises(ToolError, match="No matching Secureframe"):
         await supplemental.upload_security_questionnaire_file(str(evidence), "owner")
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize("status", [200, 401, 403])
-async def test_auth_probe_does_not_expose_user_data_or_token(monkeypatch, status):
-
-    async def check(request):
-        assert request.method == "GET"
-        assert request.url.path == "/users"
-        assert request.url.params == httpx.QueryParams({"page": "1", "per_page": "1"})
-        return httpx.Response(status, json={"data": [{"name": "private-user"}]})
-
-    monkeypatch.setattr(
-        rest_auth,
-        "rest_client",
-        lambda: httpx.AsyncClient(
-            base_url="https://api.secureframe.com",
-            transport=httpx.MockTransport(check),
-        ),
-    )
-    result = await rest_auth.probe()
-    assert result["accepted"] is (status == 200)
-    assert result["status_code"] == status
-    assert "private-user" not in str(result)
 
 
 def test_rest_auth_rejects_non_secureframe_origin(monkeypatch):

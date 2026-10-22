@@ -12,6 +12,7 @@ from typing import Any
 
 import httpx
 
+from . import rest_auth
 from .config import Config, load_config
 
 _PER_PAGE_MAX = 100  # Secureframe hard-caps page size at 100 regardless of request.
@@ -36,16 +37,13 @@ def get_config() -> Config:
 def get_client() -> httpx.AsyncClient:
     global _client
     if _client is None:
-        cfg = get_config()
         # Content-Type is intentionally omitted so httpx sets it per request
         # (application/json for json= bodies, multipart for file uploads).
         _client = httpx.AsyncClient(
-            base_url=cfg.base_url,
-            headers={
-                "Authorization": cfg.auth_header,
-                "Accept": "application/json",
-            },
+            headers={"Accept": "application/json"},
             timeout=60.0,
+            follow_redirects=False,
+            trust_env=False,
         )
     return _client
 
@@ -67,13 +65,21 @@ async def request(
 ) -> dict[str, Any]:
     """Make a single API request, returning parsed JSON or an {"error": ...} dict."""
     client = get_client()
+    try:
+        oauth = await asyncio.to_thread(rest_auth.credential)
+    except ValueError as exc:
+        return {"error": str(exc)}
     clean_params = {k: v for k, v in (params or {}).items() if v is not None}
 
     last_error = ""
     for attempt in range(_MAX_RETRIES + 1):
         try:
             response = await client.request(
-                method, endpoint, params=clean_params, json=json_data
+                method,
+                f"{oauth.api_url}{endpoint}",
+                params=clean_params,
+                json=json_data,
+                headers={"Authorization": f"Bearer {oauth.access_token}"},
             )
         except httpx.RequestError as exc:
             last_error = f"Request failed: {exc}"
@@ -118,6 +124,7 @@ async def upload(
     file_path: str,
     *,
     params: dict[str, Any] | None = None,
+    http_client: httpx.AsyncClient | None = None,
 ) -> dict[str, Any]:
     """Upload a local file as multipart/form-data (field name ``file``)."""
     import os
@@ -125,14 +132,27 @@ async def upload(
     if not os.path.isfile(file_path):
         return {"error": f"File not found: {file_path}"}
 
-    client = get_client()
+    client = http_client if http_client is not None else get_client()
+    auth_headers = {}
+    if http_client is None:
+        try:
+            oauth = await asyncio.to_thread(rest_auth.credential)
+        except ValueError as exc:
+            return {"error": str(exc)}
+        endpoint = f"{oauth.api_url}{endpoint}"
+        auth_headers["Authorization"] = f"Bearer {oauth.access_token}"
     clean_params = {k: v for k, v in (params or {}).items() if v is not None}
     try:
-        with open(file_path, "rb") as fh:
-            files = {"file": (os.path.basename(file_path), fh.read())}
-        response = await client.request(
-            method, endpoint, params=clean_params, files=files
-        )
+        fh = await asyncio.to_thread(open, file_path, "rb")
+        try:
+            files = {"file": (os.path.basename(file_path), fh)}
+            response = await client.request(
+                method, endpoint, params=clean_params, files=files, headers=auth_headers
+            )
+        finally:
+            await asyncio.to_thread(fh.close)
+    except OSError as exc:
+        return {"error": f"Could not read upload file: {exc.strerror}"}
     except httpx.RequestError as exc:
         return {"error": f"Request failed: {exc}"}
 

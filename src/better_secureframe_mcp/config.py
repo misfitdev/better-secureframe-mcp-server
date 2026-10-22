@@ -16,8 +16,6 @@ def _tagset(value: str | None) -> frozenset[str]:
 
 @dataclass(frozen=True)
 class Config:
-    api_key: str
-    api_secret: str
     base_url: str
     read_only: bool
     transport: str
@@ -25,11 +23,6 @@ class Config:
     port: int
     include_tags: frozenset[str]
     exclude_tags: frozenset[str]
-
-    @property
-    def auth_header(self) -> str:
-        # Secureframe expects "<key> <secret>" in the Authorization header.
-        return f"{self.api_key} {self.api_secret}"
 
     def keep_tool(self, tags: frozenset[str]) -> bool:
         """Whether a tool with these tags should be registered.
@@ -41,28 +34,16 @@ class Config:
         """
         if self.exclude_tags & tags:
             return False
-        if self.include_tags and not (self.include_tags & tags):
-            return False
-        return True
+        return not self.include_tags or bool(self.include_tags & tags)
 
 
 def load_config() -> Config:
-    api_key = os.getenv("SECUREFRAME_API_KEY", "").strip()
-    api_secret = os.getenv("SECUREFRAME_API_SECRET", "").strip()
-    if not api_key or not api_secret:
-        raise ValueError(
-            "SECUREFRAME_API_KEY and SECUREFRAME_API_SECRET must be set. "
-            "Create an API key in Secureframe under Company settings -> API keys."
-        )
-
-    # US is the default region; UK instances use https://api-uk.secureframe.com.
+    # An explicit URL selects a region; OAuth resolution infers it when unset.
     base_url = os.getenv("SECUREFRAME_API_URL", "https://api.secureframe.com").rstrip(
         "/"
     )
 
     return Config(
-        api_key=api_key,
-        api_secret=api_secret,
         base_url=base_url,
         read_only=_truthy(os.getenv("SECUREFRAME_READ_ONLY")),
         transport=os.getenv("SECUREFRAME_MCP_TRANSPORT", "stdio").strip().lower(),

@@ -51,8 +51,9 @@ User evidence requires document_type. The same flow supports signed Trust Center
 via the official update_trust_center_request. Upload URLs expire in 15 minutes;
 upload ids expire in 1 hour and are single-use. Evidence is limited to 32 MB.
 For realistic questionnaire files, upload_security_questionnaire_file uses the REST
-multipart endpoint. API key/secret is the documented auth method; MCP bearer auth
-can be explicitly tested using SECUREFRAME_REST_AUTH=mcp_token. Do not send file
+multipart endpoint. API key/secret is the documented auth method; without API keys, the helper
+reads Claude Code's macOS Secureframe token. REST bearer auth is experimental;
+run secureframe-probe-rest-auth --claude-code on the signed-in machine first. Do not send file
 bytes or credentials in chat. Evidence helpers need no credentials or separate login.
 """,
 )
@@ -180,14 +181,14 @@ async def upload_security_questionnaire_file(
 ) -> dict[str, Any]:
     """Upload a realistic questionnaire file through REST, avoiding MCP's inline size limit.
 
-    Uses REST credentials for the intended company (API key/secret by default).
-    Optional MCP bearer auth is experimental; run secureframe-probe-rest-auth first.
+    Uses API keys when configured, otherwise Claude Code's cached token on macOS.
+    REST bearer auth is experimental; run secureframe-probe-rest-auth --claude-code first.
     Uses the API's file limits, not the evidence staging endpoint's 32 MB limit.
     No automatic retry: retrying a successful but interrupted creation can duplicate it.
     """
     _ensure_writable()
     try:
-        rest = rest_auth.rest_client()
+        rest = await asyncio.to_thread(rest_auth.rest_client)
     except ValueError as exc:
         raise ToolError(str(exc)) from None
     async with rest:

@@ -26,8 +26,11 @@ def clean_auth(monkeypatch):
         "SECUREFRAME_MCP_TRANSPORT",
         "SECUREFRAME_TOOL_TAGS",
         "SECUREFRAME_EXCLUDE_TAGS",
+        "SECUREFRAME_CLAUDE_SERVER_NAME",
     ):
         monkeypatch.delenv(name, raising=False)
+    # These existing tests exercise explicit API-key/manual-token modes only.
+    monkeypatch.setenv("SECUREFRAME_REST_AUTH", "api_key")
 
 
 @pytest.fixture

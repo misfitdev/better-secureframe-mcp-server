@@ -48,7 +48,7 @@ The upstream staging endpoint limits files to **32 MB**. Signed URLs expire afte
 
 The current [REST API contract](https://api.secureframe.com/docs#tag/security-questionnaire/POST/security_questionnaires) accepts multipart `file` uploads. It does not list `upload_id` as a questionnaire input. Consequently, the evidence signed-URL workflow cannot replace this call.
 
-Configure credentials in your local environment or an env file outside the repository:
+For documented API-key authentication, configure credentials in your local environment or an env file outside the repository. Alternatively, the experimental Claude Code cache reuse below needs no env file:
 
 ```sh
 export SECUREFRAME_ENV_FILE=/absolute/path/secureframe-local.env
@@ -71,23 +71,32 @@ API keys and your official OAuth login can refer to different users/companies: u
 
 **Unverified:** official OAuth discovery advertises the MCP resource and `mcp` scope. The public REST contract documents API key/secret authentication, not bearer tokens. The code provides an explicit opt-in so this can be checked on a signed-in system without assuming compatibility.
 
-Locally obtain a current access token from the signed-in client's supported credential interface or cache. Cache formats and OS keychains differ by client; this project does not guess their locations or modify their caches. Supply the access token as `SECUREFRAME_MCP_ACCESS_TOKEN` in the private env file, then add:
-
-```dotenv
-SECUREFRAME_REST_AUTH=mcp_token
-```
-
-Do not paste the token into chat, commit it, or pass it as a command-line argument. Run:
+On the **macOS machine where Claude Code is already signed in**, install or update this branch and run:
 
 ```sh
-SECUREFRAME_ENV_FILE=/absolute/path/secureframe-local.env .venv/bin/secureframe-probe-rest-auth
+uv tool install --force 'git+https://github.com/misfitdev/better-secureframe-mcp-server.git@codex/supplemental-local-uploads'
+secureframe-probe-rest-auth --claude-code
 ```
 
-The probe makes **one GET `/users?page=1&per_page=1`** and prints only the status and auth result, never personnel data or the credential. It performs no writes. A 2xx response establishes that this token worked for that read; it does not establish write permissions. A 401/403 does not by itself distinguish token expiry, unsupported bearer auth, and user permissions.
+**No env file or copied token is required.** The probe reads Claude Code's existing Secureframe MCP access token from the macOS Keychain, then makes **one GET `/users?page=1&per_page=1`**. It prints only the HTTP status and auth result, never tokens or personnel data. macOS may ask you to allow Keychain access.
 
-In this experimental mode, questionnaire uploads use `Authorization: Bearer <token>`. There is no automatic fallback to an API key. The helper does not refresh the token, so supply a fresh access token when needed. Concurrently sharing a rotating refresh-token cache would require coordination with the owning client; this implementation only consumes an explicitly supplied access token.
+If multiple Secureframe sign-ins exist, select the cached server explicitly:
 
-Set `SECUREFRAME_REST_AUTH=api_key` (the default) to use documented API authentication. Supplemental authenticated REST calls are limited to the official US/UK API origins. No REST token compatibility claim is made until verified against the actual service.
+```sh
+secureframe-probe-rest-auth --claude-code --server-name secureframe --region us
+```
+
+`--region` accepts `us` or `uk`; a single matching cached login automatically selects its API region. The loader matches the exact official Secureframe MCP URL, not just a server name. It will not substitute Claude's own account token or credentials for another MCP server.
+
+The reader supports Claude Code's `mcpOAuth` Keychain format (checked against installed Claude Code 2.1.283), plus its `.credentials.json` fallback **only when the Keychain item does not exist**. It respects `CLAUDE_CONFIG_DIR` / `CLAUDE_SECURESTORAGE_CONFIG_DIR`. A nonstandard Keychain service can be selected through `SECUREFRAME_CLAUDE_KEYCHAIN_SERVICE`. These are client internals, so future Claude Code versions may require an adapter update.
+
+The loader only reads the access token. It never writes the cache, rotates a refresh token, or starts a new OAuth login. If the cached token has expired, use the official server in Claude Code to refresh/authenticate, then rerun. Each questionnaire call rereads the cache, so it can pick up Claude's refreshed token.
+
+A successful probe establishes that the cached token worked for that read; it does not establish write permission. A rejection does not by itself distinguish unsupported bearer auth, revocation, insufficient permissions, and other service restrictions. REST acceptance remains unverified until this is run on a signed-in machine.
+
+Questionnaire uploads now default to `SECUREFRAME_REST_AUTH=auto`: use API keys if both are configured, otherwise reuse Claude Code's cached MCP token. Set `SECUREFRAME_REST_AUTH=claude_code` to explicitly select the cache even when API keys are present. The supplemental server needs the same macOS account/profile as the signed-in Claude Code instance.
+
+Manual tokens remain available through `SECUREFRAME_REST_AUTH=mcp_token` and `SECUREFRAME_MCP_ACCESS_TOKEN`; API keys through `SECUREFRAME_REST_AUTH=api_key`. There is no fallback to a different credential after an authentication error. Authenticated REST calls are restricted to the official US/UK API origins. Do not paste credentials into chat or commit them.
 
 ## Settings and development
 

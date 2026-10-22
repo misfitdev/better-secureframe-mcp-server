@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import asyncio
 import json
 import os
@@ -11,22 +12,45 @@ from typing import Any
 import httpx
 from dotenv import load_dotenv
 
+from . import claude_auth
 from .config import load_config
 
 API_URLS = {"https://api.secureframe.com", "https://api-uk.secureframe.com"}
 
 
+def _auth_mode() -> str:
+    mode = os.getenv("SECUREFRAME_REST_AUTH", "auto").strip().lower()
+    if mode == "auto":
+        mode = (
+            "api_key"
+            if os.getenv("SECUREFRAME_API_KEY", "").strip()
+            and os.getenv("SECUREFRAME_API_SECRET", "").strip()
+            else "claude_code"
+        )
+    if mode not in {"api_key", "mcp_token", "claude_code"}:
+        raise ValueError(
+            "SECUREFRAME_REST_AUTH must be auto, api_key, mcp_token, or claude_code."
+        )
+    return mode
+
+
 def rest_client() -> httpx.AsyncClient:
-    """Build an isolated client; never discover or read another client's token cache."""
-    mode = os.getenv("SECUREFRAME_REST_AUTH", "api_key").strip().lower()
-    if mode not in {"api_key", "mcp_token"}:
-        raise ValueError("SECUREFRAME_REST_AUTH must be api_key or mcp_token.")
+    """Resolve credentials per call; only Claude Code owns its refresh-token cache."""
+    mode = _auth_mode()
     cfg = load_config(require_credentials=mode == "api_key")
     if cfg.base_url not in API_URLS:
         raise ValueError(
             "Supplemental REST uploads require a Secureframe US or UK API URL."
         )
-    if mode == "mcp_token":
+    base_url = cfg.base_url
+    if mode == "claude_code":
+        cached = claude_auth.cached_credential(
+            api_url=cfg.base_url if os.getenv("SECUREFRAME_API_URL") else None,
+            server_name=os.getenv("SECUREFRAME_CLAUDE_SERVER_NAME") or None,
+        )
+        authorization = f"Bearer {cached.access_token}"
+        base_url = cached.api_url
+    elif mode == "mcp_token":
         token = os.getenv("SECUREFRAME_MCP_ACCESS_TOKEN", "").strip()
         if not token:
             raise ValueError(
@@ -37,7 +61,7 @@ def rest_client() -> httpx.AsyncClient:
     else:
         authorization = cfg.auth_header
     return httpx.AsyncClient(
-        base_url=cfg.base_url,
+        base_url=base_url,
         headers={"Authorization": authorization, "Accept": "application/json"},
         timeout=120.0,
         follow_redirects=False,
@@ -47,7 +71,7 @@ def rest_client() -> httpx.AsyncClient:
 
 async def probe() -> dict[str, Any]:
     """Read one user to check auth; never return personnel data or credentials."""
-    async with rest_client() as rest:
+    async with await asyncio.to_thread(rest_client) as rest:
         response = await rest.get("/users", params={"page": 1, "per_page": 1})
     try:
         payload = response.json()
@@ -59,7 +83,7 @@ async def probe() -> dict[str, Any]:
         and isinstance(payload.get("data"), list)
     )
     return {
-        "auth_mode": os.getenv("SECUREFRAME_REST_AUTH", "api_key").strip().lower(),
+        "auth_mode": _auth_mode(),
         "status_code": response.status_code,
         "accepted": accepted,
         "note": (
@@ -72,7 +96,30 @@ async def probe() -> dict[str, Any]:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Probe Secureframe REST auth with one read-only request."
+    )
+    parser.add_argument(
+        "--claude-code",
+        action="store_true",
+        help="Read the existing Secureframe access token from Claude Code on macOS.",
+    )
+    parser.add_argument(
+        "--server-name", help="Select a Claude Code MCP server by name."
+    )
+    parser.add_argument("--region", choices=["us", "uk"], help="Select a data region.")
+    args = parser.parse_args()
     load_dotenv(os.getenv("SECUREFRAME_ENV_FILE") or None)
+    if args.claude_code:
+        os.environ["SECUREFRAME_REST_AUTH"] = "claude_code"
+    if args.server_name:
+        os.environ["SECUREFRAME_CLAUDE_SERVER_NAME"] = args.server_name
+    if args.region:
+        os.environ["SECUREFRAME_API_URL"] = (
+            "https://api-uk.secureframe.com"
+            if args.region == "uk"
+            else "https://api.secureframe.com"
+        )
     try:
         result = asyncio.run(probe())
     except ValueError as exc:

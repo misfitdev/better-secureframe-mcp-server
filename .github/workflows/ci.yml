@@ -29,9 +29,8 @@ jobs:
       - uses: jdx/mise-action@8418fedb1110381a0d3ba51a7a415d7c1b884550 # v5.2.2
       - name: Install matrix Python and run tests
         run: |
-          mise use python@${{ matrix.python }}
-          rm -rf .venv
-          mise install
+          mise install python@${{ matrix.python }}
+          uv venv --python "$(mise where python@${{ matrix.python }})/bin/python" --clear .venv
           just install
           just test
 

@@ -21,8 +21,10 @@ from pydantic import Field
 
 from . import client, rest_auth, shaping
 
-READ = ToolAnnotations(readOnlyHint=True, openWorldHint=True)
-CREATE = ToolAnnotations(readOnlyHint=False, destructiveHint=False, openWorldHint=True)
+READ = ToolAnnotations(read_only_hint=True, open_world_hint=True)
+CREATE = ToolAnnotations(
+    read_only_hint=False, destructive_hint=False, open_world_hint=True
+)
 
 MAX_EVIDENCE_BYTES = 32 * 1024 * 1024
 QuestionnaireTemplate = Literal[

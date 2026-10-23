@@ -237,7 +237,7 @@ async def test_only_supplemental_tools_exposed_and_user_document_type_not_redefi
             "put_local_file_upload",
             "upload_security_questionnaire_file",
         }
-        assert tools["prepare_local_file_upload"].annotations.readOnlyHint is True
+        assert tools["prepare_local_file_upload"].annotations.read_only_hint is True
         result = await connection.call_tool(
             "upload_security_questionnaire_file",
             {

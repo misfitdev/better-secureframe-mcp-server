@@ -1,41 +1,37 @@
 ---
-title: Secureframe uploads
-dek: "Local file tools for the official Secureframe MCP."
+title: Upload local files to Secureframe
+description: Three small tools that let Claude Code send files from your Mac to Secureframe.
 permalink: /
 ---
 
-## Install
+Keep Secureframe's official MCP connected. This helper adds the local file access its tools need for evidence and questionnaires.
 
-On the Mac where Claude Code is signed in to Secureframe:
+## Set up
+
+On the Mac where Claude Code is signed in to Secureframe, run:
 
 ```sh
 uv tool install --force --refresh 'git+{{ site.repository_url }}.git@{{ site.install_ref }}'
 claude mcp add secureframe-local-uploads -- "$(command -v better-secureframe-mcp)"
 ```
 
-Keep the official Secureframe MCP connected. Reload the client's MCP connections after installation.
+Then reload Claude Code's MCP connections. The official Secureframe MCP handles ordinary Secureframe work; this helper handles local files.
 
-## Evidence
+## Add evidence or a signed NDA
 
-1. Call local `prepare_local_file_upload(file_path)`.
-2. Call official `create_file_upload` with the returned metadata. Keep its `id`, `url`, and `headers`.
-3. Call local `put_local_file_upload(file_path, url, headers, byte_size, checksum)`.
-4. Call official `create_test_evidence` or `create_user_evidence` with `upload_id=id`.
+Ask Claude Code to attach a local file. It will use both servers in this order:
 
-User evidence requires `document_type`. For a signed NDA, attach the upload with official `update_trust_center_request`.
+1. **Prepare:** this helper reads the file and calculates its size and checksum.
+2. **Stage:** the official MCP creates a Secureframe upload and returns a signed URL.
+3. **Upload:** this helper sends the file to that URL.
+4. **Attach:** the official MCP links the upload to a test, user, or Trust Center request.
 
-Evidence is limited to 32 MB. Signed URLs expire after 15 minutes; upload IDs expire after one hour and are single-use. If the file changes, prepare and stage it again.
+Files can be up to **32 MB**. The signed URL lasts 15 minutes; the upload ID lasts one hour and can be used once. If the file changes, start again from step 1. User evidence also needs a `document_type`.
 
-## Questionnaires
+## Upload a questionnaire
 
-```text
-upload_security_questionnaire_file(file_path, owner_id)
-```
+Ask Claude Code to use `upload_security_questionnaire_file` with a local `file_path` and Secureframe `owner_id`. You can also provide `company_name`, `due_date` (`YYYY-MM-DD`), or `questionnaire_template`.
 
-Optional inputs: `company_name`, `due_date` (`YYYY-MM-DD`), and `questionnaire_template`.
+This tool uses Claude Code's Secureframe sign-in on macOS. If the sign-in expires, refresh it through the official MCP and retry. Before retrying an interrupted upload, check whether Secureframe created the questionnaire.
 
-The tool uploads the file as multipart using Claude Code's Secureframe OAuth sign-in on macOS. If the session expires, use the official MCP in Claude Code to refresh/authenticate, then retry.
-
-For multiple sign-ins, select the cached server with `SECUREFRAME_CLAUDE_SERVER_NAME` and the region with `SECUREFRAME_API_URL`. See [optional settings]({{ site.repository_url }}/blob/{{ site.install_ref }}/env.example).
-
-Questionnaire creation is not automatically retried. If a response is interrupted, check whether the questionnaire was created before resubmitting it.
+For multiple Secureframe sign-ins, see [optional settings]({{ site.repository_url }}/blob/{{ site.install_ref }}/env.example). The [source and development instructions]({{ site.repository_url }}) are on GitHub.

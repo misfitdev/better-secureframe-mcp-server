@@ -45,10 +45,3 @@ docs-check: docs-build
 # Run the MCP server over stdio
 run:
     python main.py
-
-# Re-vendor the OpenAPI spec from the live docs
-refresh-spec:
-    curl -s https://api.secureframe.com/docs/openapi.json \
-      | sed -n '/^openapi:/,/<\/script>/p' \
-      | sed '/<\/script>/d' > docs/openapi.yaml
-    @echo "Wrote docs/openapi.yaml"

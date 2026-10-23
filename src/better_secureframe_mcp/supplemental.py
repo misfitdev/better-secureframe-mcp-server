@@ -16,10 +16,13 @@ from urllib.parse import urlsplit
 import httpx
 from fastmcp import FastMCP
 from fastmcp.exceptions import ToolError
+from mcp.types import ToolAnnotations
 from pydantic import Field
 
 from . import client, rest_auth, shaping
-from .tools import _common as c
+
+READ = ToolAnnotations(readOnlyHint=True, openWorldHint=True)
+CREATE = ToolAnnotations(readOnlyHint=False, destructiveHint=False, openWorldHint=True)
 
 MAX_EVIDENCE_BYTES = 32 * 1024 * 1024
 QuestionnaireTemplate = Literal[
@@ -96,7 +99,7 @@ async def _validate_upload_url(url: str) -> None:
         raise ToolError("Upload URL must use HTTPS and a public storage host.") from exc
 
 
-@mcp.tool(annotations=c.READ, tags={"uploads", "read"})
+@mcp.tool(annotations=READ)
 async def prepare_local_file_upload(
     file_path: Annotated[
         str, Field(description="Local evidence or signed NDA file path")
@@ -116,7 +119,7 @@ async def prepare_local_file_upload(
     }
 
 
-@mcp.tool(annotations=c.CREATE, tags={"uploads", "write"})
+@mcp.tool(annotations=CREATE)
 async def put_local_file_upload(
     file_path: str,
     url: Annotated[
@@ -159,7 +162,7 @@ async def put_local_file_upload(
     return {"uploaded": True, "byte_size": len(content), "attached": False}
 
 
-@mcp.tool(annotations=c.CREATE, tags={"questionnaires", "uploads", "write"})
+@mcp.tool(annotations=CREATE)
 async def upload_security_questionnaire_file(
     file_path: Annotated[
         str, Field(description="Local questionnaire path; sent as multipart")
@@ -181,7 +184,6 @@ async def upload_security_questionnaire_file(
         raise ToolError(str(exc)) from None
     async with rest:
         result = await client.upload(
-            "POST",
             "/security_questionnaires",
             str(Path(file_path).expanduser()),
             http_client=rest,

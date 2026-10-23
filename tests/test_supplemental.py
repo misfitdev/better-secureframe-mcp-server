@@ -10,7 +10,6 @@ from fastmcp import Client
 from fastmcp.exceptions import ToolError
 
 from better_secureframe_mcp import rest_auth, server, supplemental
-from better_secureframe_mcp.config import load_config
 
 
 @pytest.fixture(autouse=True)
@@ -21,10 +20,6 @@ def clean_auth(monkeypatch):
         "SECUREFRAME_API_URL",
         "SECUREFRAME_MCP_ACCESS_TOKEN",
         "SECUREFRAME_REST_AUTH",
-        "SECUREFRAME_MCP_MODE",
-        "SECUREFRAME_MCP_TRANSPORT",
-        "SECUREFRAME_TOOL_TAGS",
-        "SECUREFRAME_EXCLUDE_TAGS",
         "SECUREFRAME_CLAUDE_SERVER_NAME",
     ):
         monkeypatch.delenv(name, raising=False)
@@ -259,15 +254,5 @@ def test_default_entrypoint_needs_no_api_credentials(monkeypatch):
     monkeypatch.setattr(server, "load_dotenv", lambda *a: None)
     run = Mock()
     monkeypatch.setattr(supplemental.mcp, "run", run)
-    server.main()
-    run.assert_called_once_with()
-    assert load_config().base_url == "https://api.secureframe.com"
-
-
-def test_legacy_mode_starts_without_manual_credentials(monkeypatch):
-    monkeypatch.setattr(server, "load_dotenv", lambda *a: None)
-    monkeypatch.setenv("SECUREFRAME_MCP_MODE", "legacy")
-    run = Mock()
-    monkeypatch.setattr(server.mcp, "run", run)
     server.main()
     run.assert_called_once_with()

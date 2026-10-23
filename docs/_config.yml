@@ -3,16 +3,13 @@ description: Local evidence and questionnaire uploads alongside the official Sec
 url: https://misfitdev.github.io
 baseurl: /better-secureframe-mcp-server
 repository_url: https://github.com/misfitdev/better-secureframe-mcp-server
-install_ref: codex/supplemental-local-uploads
+install_ref: main
 # Custom layout (no theme). All pages default to the `default` layout.
 defaults:
   - scope:
       path: ""
     values:
       layout: default
-
-exclude:
-  - openapi.yaml
 
 kramdown:
   input: GFM

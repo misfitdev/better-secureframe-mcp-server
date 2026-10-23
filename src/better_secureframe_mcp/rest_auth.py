@@ -7,18 +7,18 @@ import os
 import httpx
 
 from . import claude_auth
-from .config import load_config
+from .config import api_url
 
 API_URLS = {"https://api.secureframe.com", "https://api-uk.secureframe.com"}
 
 
 def credential() -> claude_auth.ClaudeCredential:
     """Read the current OAuth access token; Claude Code owns refresh-token handling."""
-    cfg = load_config()
-    if cfg.base_url not in API_URLS:
+    selected_url = api_url()
+    if selected_url is not None and selected_url not in API_URLS:
         raise ValueError("REST calls require an official Secureframe US or UK API URL.")
     return claude_auth.cached_credential(
-        api_url=cfg.base_url if os.getenv("SECUREFRAME_API_URL") else None,
+        api_url=selected_url,
         server_name=os.getenv("SECUREFRAME_CLAUDE_SERVER_NAME") or None,
     )
 

@@ -1,13 +1,13 @@
 # Secureframe Local Upload Helpers
 
-Three local-file tools for the [official Secureframe MCP](https://mcp.secureframe.com/mcp_docs). Questionnaire uploads use Claude Code's Secureframe OAuth sign-in on macOS.
+Three local-file tools for the [official Secureframe MCP](https://mcp.secureframe.com/mcp_docs). The official server handles Secureframe data; this one reads files on your Mac for evidence and questionnaires.
 
 ## Install
 
 On the signed-in Mac:
 
 ```sh
-uv tool install --force --refresh 'git+https://github.com/misfitdev/better-secureframe-mcp-server.git@codex/supplemental-local-uploads'
+uv tool install --force --refresh 'git+https://github.com/misfitdev/better-secureframe-mcp-server.git@main'
 claude mcp add secureframe-local-uploads -- "$(command -v better-secureframe-mcp)"
 ```
 
@@ -37,6 +37,6 @@ just test
 just lint
 ```
 
-The single-page [documentation](https://misfitdev.github.io/better-secureframe-mcp-server/) uses Jekyll. With Ruby 3.3 and Bundler, run `bundle install` then `just docs-check`.
+The [upload guide](https://misfitdev.github.io/better-secureframe-mcp-server/) uses Jekyll. With Ruby 3.3 and Bundler, run `bundle install` then `just docs-check`.
 
 [MIT license](LICENSE).

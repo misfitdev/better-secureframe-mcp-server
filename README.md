@@ -26,7 +26,13 @@ User evidence requires `document_type`. Evidence is limited to 32 MB. Signed URL
 
 Call `upload_security_questionnaire_file(file_path, owner_id)`. Optional inputs: `company_name`, `due_date` (`YYYY-MM-DD`), and `questionnaire_template`.
 
-If OAuth expires, refresh/authenticate through the official MCP in Claude Code and retry. For multiple sign-ins, select the cached server and region using the [optional settings](env.example).
+If OAuth expires, refresh/authenticate through the official MCP in Claude Code and retry.
+
+## Optional settings
+
+No settings file or credentials are needed. If Claude Code has multiple Secureframe sign-ins, set `SECUREFRAME_CLAUDE_SERVER_NAME` to the cached server name and, if needed, `SECUREFRAME_API_URL` to `https://api.secureframe.com` or `https://api-uk.secureframe.com`.
+
+For a custom Claude Code profile, set `CLAUDE_CONFIG_DIR` to its directory. `SECUREFRAME_CLAUDE_KEYCHAIN_SERVICE` can select a custom macOS Keychain service.
 
 ## Development
 

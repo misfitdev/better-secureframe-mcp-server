@@ -251,7 +251,6 @@ async def test_only_supplemental_tools_exposed_and_user_document_type_not_redefi
 
 
 def test_default_entrypoint_needs_no_api_credentials(monkeypatch):
-    monkeypatch.setattr(server, "load_dotenv", lambda *a: None)
     run = Mock()
     monkeypatch.setattr(supplemental.mcp, "run", run)
     server.main()

@@ -1,6 +1,6 @@
 [project]
 name = "better-secureframe-mcp-server"
-version = "0.2.0"
+version = "0.3.0"
 description = "Local file upload helpers that supplement the official Secureframe MCP server"
 readme = "README.md"
 requires-python = ">=3.10"

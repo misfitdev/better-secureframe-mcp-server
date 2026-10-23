@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Upload local files to Secureframe</title>
+    <meta name="description" content="Three small tools that let Claude Code send files from your Mac to Secureframe.">
+    <link rel="stylesheet" href="assets/css/main.css">
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <main id="main">
+      <header class="hero">
+        <p class="eyebrow">Secureframe · local uploads</p>
+        <h1>Upload local files to Secureframe</h1>
+        <p class="subtitle">Three small tools that let Claude Code send files from your Mac to Secureframe.</p>
+      </header>
+      <article>
+        <p>Keep Secureframe’s official MCP connected. This helper adds the local file access its tools need for evidence and questionnaires.</p>
+
+        <h2>Set up</h2>
+        <p>On the Mac where Claude Code is signed in to Secureframe, run:</p>
+        <pre><code>uv tool install --force --refresh 'git+https://github.com/misfitdev/better-secureframe-mcp-server.git@main'
+claude mcp add secureframe-local-uploads -- "$(command -v better-secureframe-mcp)"</code></pre>
+        <p>Then reload Claude Code’s MCP connections. The official Secureframe MCP handles ordinary Secureframe work; this helper handles local files.</p>
+
+        <h2>Add evidence or a signed NDA</h2>
+        <p>Ask Claude Code to attach a local file. It will use both servers in this order:</p>
+        <ol>
+          <li><strong>Prepare:</strong> this helper reads the file and calculates its size and checksum.</li>
+          <li><strong>Stage:</strong> the official MCP creates a Secureframe upload and returns a signed URL.</li>
+          <li><strong>Upload:</strong> this helper sends the file to that URL.</li>
+          <li><strong>Attach:</strong> the official MCP links the upload to a test, user, or Trust Center request.</li>
+        </ol>
+        <p>Files can be up to <strong>32 MB</strong>. The signed URL lasts 15 minutes; the upload ID lasts one hour and can be used once. If the file changes, start again from step 1. User evidence also needs a <code>document_type</code>.</p>
+
+        <h2>Upload a questionnaire</h2>
+        <p>Ask Claude Code to use <code>upload_security_questionnaire_file</code> with a local <code>file_path</code> and Secureframe <code>owner_id</code>. You can also provide <code>company_name</code>, <code>due_date</code> (<code>YYYY-MM-DD</code>), or <code>questionnaire_template</code>.</p>
+        <p>This tool uses Claude Code’s Secureframe sign-in on macOS. If the sign-in expires, refresh it through the official MCP and retry. Before retrying an interrupted upload, check whether Secureframe created the questionnaire.</p>
+        <p>For multiple Secureframe sign-ins, see <a href="https://github.com/misfitdev/better-secureframe-mcp-server/blob/main/env.example">optional settings</a>. The <a href="https://github.com/misfitdev/better-secureframe-mcp-server">source and development instructions</a> are on GitHub.</p>
+      </article>
+      <footer><a href="https://github.com/misfitdev/better-secureframe-mcp-server">GitHub source</a><span aria-hidden="true">·</span><a href="https://github.com/misfitdev/better-secureframe-mcp-server/blob/main/LICENSE">MIT license</a></footer>
+    </main>
+  </body>
+</html>

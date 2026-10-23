@@ -34,14 +34,6 @@ build:
     python -m build
     twine check dist/*
 
-# Build the GitHub Pages documentation (Ruby + bundle install required).
-docs-build:
-    bundle exec jekyll build --source docs --destination docs/_site --strict_front_matter
-
-# Validate links and anchors in the rendered documentation.
-docs-check: docs-build
-    python3 scripts/check_docs.py
-
 # Run the MCP server over stdio
 run:
     python main.py

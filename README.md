@@ -37,6 +37,6 @@ just test
 just lint
 ```
 
-The [upload guide](https://misfitdev.github.io/better-secureframe-mcp-server/) uses Jekyll. With Ruby 3.3 and Bundler, run `bundle install` then `just docs-check`.
+The [upload guide](https://misfitdev.github.io/better-secureframe-mcp-server/) is a static page in `docs/`.
 
 [MIT license](LICENSE).
